@@ -2,6 +2,8 @@
 
 GP_DOWNLOAD_URL="https://network.pivotal.io/api/v2/products/pivotal-gpdb/releases/253113/product_files/276404/download"
 
+OUTPUT_FILE="build/centos7-greenplum.ova";
+
 # Show help if requested
 if [[ -z "$REFRESH_TOKEN" ]] || [[ " $* " == *' --help '* ]] || [[ " $* " == *' help '* ]] || [[ " $* " == *' -h '* ]] || [[ " $* " == *' -? '* ]]; then
   echo "Usage:" >&2
@@ -52,12 +54,15 @@ fi
 # Build VM
 BASE_IMAGE_OVF=( build/centos7-os/*.ovf )
 echo "Building Greenplum image (based on $BASE_IMAGE_OVF)..."
+rm -rf "build/centos7-greenplum" || true
 packer build \
   -var "base_os=$BASE_IMAGE_OVF" \
   -var "greenplum_zip=$GP_ZIP" \
   packer/centos7-greenplum.json
 
+mv -f build/centos7-greenplum/*.ova "$OUTPUT_FILE"
+
 echo
-echo "Build complete; see build/centos7-greenplum"
+echo "Build complete; generated $OUTPUT_FILE"
 
 cd -

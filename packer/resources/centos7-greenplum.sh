@@ -2,6 +2,10 @@
 
 set -ex
 
+DATA_DIR="/gpdata"
+TEMP_DIR="/gp_tmp"
+MASTER_HOSTNAME="gpdbox"
+
 echo "Installing required packages"
 sudo yum install -y unzip
 
@@ -18,14 +22,15 @@ BINFILE=( ~/gp/greenplum-db-*.bin )
 sed -i 's/more << EOF/cat << EOF/g' "$BINFILE"
 echo -e "yes\n\nyes\nyes\n" | sudo "$BINFILE"
 
-sudo chown -R gpadmin:gpadmin /usr/local/green*
+sudo mkdir -p "$TEMP_DIR" "$DATA_DIR/master" "$DATA_DIR/segments"
 
-sudo mkdir -p /gpdata/master /gpdata/segments
-sudo chown -R gpadmin:gpadmin /gpdata
+sudo_append() {
+  sudo tee -a "$1" >/dev/null
+}
 
-MASTER_HOSTNAME=gpdbox
+echo "Configuring system"
 
-cat <<-EOF | sudo tee -a /etc/sysctl.conf >/dev/null
+sudo_append /etc/sysctl.conf <<-EOF
 ######################
 # HAWQ CONFIG PARAMS #
 ######################
@@ -55,7 +60,7 @@ net.core.wmem_max=2097152
 vm.overcommit_memory=2
 EOF
 
-cat <<-EOF | sudo tee -a /etc/security/limits.conf >/dev/null
+sudo_append /etc/security/limits.conf <<-EOF
 ######################
 # HAWQ CONFIG PARAMS #
 ######################
@@ -66,22 +71,21 @@ cat <<-EOF | sudo tee -a /etc/security/limits.conf >/dev/null
 * hard nproc 131072
 EOF
 
-cat <<-EOF | sudo tee -a /etc/sudoers >/dev/null
-gpadmin        ALL=(ALL)       NOPASSWD: ALL
-EOF
-
-cat <<-EOF | sudo tee -a /home/gpadmin/.bashrc >/dev/null
-export MASTER_DATA_DIRECTORY=/gpdata/master/gpseg-1
+sudo_append /home/gpadmin/.bashrc <<-EOF
+export MASTER_DATA_DIRECTORY="${DATA_DIR}/master/gpseg-1"
 source /usr/local/greenplum-db/greenplum_path.sh
 EOF
 
-cat <<-EOF | sudo tee -a /home/gpadmin/.bash_profile >/dev/null
-if [[ -f ~/.bashrc ]]; then
-   source ~/.bashrc
-fi
+sudo_append /home/gpadmin/.bash_profile <<-EOF
+source ~/.bashrc
 EOF
 
-cat <<-EOF > ~/gp/gpinitsystem.single_node
+sudo chown gpadmin:gpadmin /home/gpadmin/.bashrc /home/gpadmin/.bash_profile
+sudo chmod 0744 /home/gpadmin/.bashrc /home/gpadmin/.bash_profile
+
+echo "Configuring Greenplum"
+
+sudo_append "$TEMP_DIR/gpinitsystem.single_node" <<-EOF
 # FILE NAME: gpinitsystem_singlenode
 
 # A configuration file is needed by the gpinitsystem utility.
@@ -106,7 +110,7 @@ ARRAY_NAME="GREENPLUM SANDBOX"
 # directory where the gpinitsystem utility is executed, specify
 # the absolute path to the file.
 
-MACHINE_LIST_FILE=/gp_tmp/gpdb-hosts
+MACHINE_LIST_FILE="${TEMP_DIR}/gpdb-hosts"
 
 
 # This specifies a prefix that will be used to name the data directories
@@ -141,7 +145,7 @@ PORT_BASE=40000
 # may want to create these directories on the segment hosts before running
 # gpinitsystem and chown them to the appropriate user.
 
-declare -a DATA_DIRECTORY=(/gpdata/segments /gpdata/segments)
+declare -a DATA_DIRECTORY=(${DATA_DIR}/segments ${DATA_DIR}/segments)
 
 # The OS-configured hostname of the Greenplum Database master instance.
 
@@ -154,7 +158,7 @@ MASTER_HOSTNAME=${MASTER_HOSTNAME}
 # create this directory on the master host before running
 # gpinitsystem and chown it to the appropriate user.
 
-MASTER_DIRECTORY=/gpdata/master
+MASTER_DIRECTORY=${DATA_DIR}/master
 
 
 # The port number for the master instance. This is the port number
@@ -194,46 +198,45 @@ ENCODING=UNICODE
 # system is initialized. You can always create a database later using
 # the CREATE DATABASE command or the createdb script.
 
-#DATABASE_NAME=warehouse
+DATABASE_NAME=gpadmin
 
 MASTER_MAX_CONNECT=250
 EOF
 
-cat <<-EOF > ~/gpdb-hosts
+sudo_append "$TEMP_DIR/gpdb-hosts" <<-EOF
 ${MASTER_HOSTNAME}
 EOF
 
-echo "127.0.0.1 $MASTER_HOSTNAME" | sudo tee -a /etc/hosts >/dev/null
+sudo_append /etc/hosts <<-EOF
+127.0.0.1 ${MASTER_HOSTNAME}
+EOF
 
-sudo mkdir -p /gp_tmp
+sudo chown -R gpadmin:gpadmin "$TEMP_DIR" "$DATA_DIR"
+sudo chmod 666 "$TEMP_DIR"/*
 
-sudo cp ~/gpdb-hosts ~/gp/gpinitsystem.single_node /gp_tmp/
+echo "Creating database"
 
-sudo chown -R gpadmin:gpadmin /gp_tmp
-sudo chmod 666 /gp_tmp/gpdb-hosts /gp_tmp/gpinitsystem.single_node
+sudo su gpadmin -c "
+cd ~
+source ~/.bashrc
 
-sudo su gpadmin -l -c "gpssh-exkeys -f /gp_tmp/gpdb-hosts"
-sudo su gpadmin -l -c "ssh-keyscan -H $MASTER_HOSTNAME >> ~/.ssh/known_hosts"
-sudo su gpadmin -l -c "ssh-keyscan -H 'localhost.localdomain' >> ~/.ssh/known_hosts"
-#sudo su gpadmin -l -c "gpssh -f /gp_tmp/gpdb-hosts -e ls" # debugging; not required
+gpssh-exkeys -f '$TEMP_DIR/gpdb-hosts'
+ssh-keyscan -H '$MASTER_HOSTNAME' >> ~/.ssh/known_hosts
+ssh-keyscan -H 'localhost.localdomain' >> ~/.ssh/known_hosts
 
 # gpinitsystem returns non-zero even on success, so this could silently fail and continue!
-# warns that hostname does not match (seems to use localhost.localdomain)
-sudo su gpadmin -c "cd ~; source ~/.bashrc; gpinitsystem -a -c /gp_tmp/gpinitsystem.single_node" || true
+gpinitsystem -a -c '$TEMP_DIR/gpinitsystem.single_node' || true
+psql -d template1 -c \"alter user gpadmin password 'pivotal';\"
+"
 
-sudo su gpadmin -l -c "psql -d template1 -c \"create database gpadmin;\""
-sudo su gpadmin -l -c "psql -d template1 -c \"alter user gpadmin password 'pivotal';\""
-
-cat <<-EOF | sudo tee -a /gpdata/master/gpseg-1/pg_hba.conf >/dev/null
+sudo_append "$DATA_DIR/master/gpseg-1/pg_hba.conf" <<-EOF
 host all all 0.0.0.0/0 md5
 EOF
 
-sudo su gpadmin -l -c "gpstop -u"
-
-sudo su gpadmin -l -c "psql -d gpadmin -c 'SELECT version();'"
+sudo su gpadmin -l -c "gpstop -u && psql -d gpadmin -c 'SELECT version();'"
 
 echo "Cleaning up"
-sudo rm -rf /gp_tmp
+sudo rm -rf "$TEMP_DIR"
 rm -rf ~/gp
 
 echo "Done."

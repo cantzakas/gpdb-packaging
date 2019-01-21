@@ -1,0 +1,38 @@
+{
+  "variables": {
+    "ssh_name": "configuser",
+    "ssh_pass": "CHANGEME",
+    "hostname": "gpdbox"
+  },
+  "builders": [
+    {
+      "type": "virtualbox-ovf",
+      "source_path": "{{user `base_os`}}",
+
+      "output_directory": "build/centos7-greenplum",
+
+      "ssh_username": "{{user `ssh_name`}}",
+      "ssh_password": "{{user `ssh_pass`}}",
+      "ssh_wait_timeout": "30s",
+
+      "shutdown_command": "sudo /sbin/halt -h -p",
+
+      "boot_wait": "15s",
+
+      "export_opts": [],
+      "format": "ova"
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "file",
+      "source": "{{user `greenplum_zip`}}",
+      "destination": "~/greenplum.zip"
+    },
+    {
+      "type": "shell",
+      "execute_command": "/bin/bash '{{ .Path }}'",
+      "script": "packer/resources/centos7-greenplum.sh"
+    }
+  ]
+}

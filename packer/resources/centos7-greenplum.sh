@@ -92,8 +92,39 @@ export MASTER_DATA_DIRECTORY="${DATA_DIR}/master/gpseg-1"
 
 EOF
 
-sudo chown gpadmin:gpadmin /home/gpadmin/.bashrc /home/gpadmin/.bash_profile
+sudo_append /home/gpadmin/start_all.sh <<-EOF
+echo "*********************************************************************************"
+echo "* Script starts the Greenplum DB                                                *"
+# echo "  , Greenplum Control Center, and Apache Zeppelin *"
+echo "*********************************************************************************"
+echo "* Starting Greenplum Database...                                                *"
+source /usr/local/greenplum-db/greenplum_path.sh
+export MASTER_DATA_DIRECTORY="${DATA_DIR}/master/gpseg-1"
+gpstart -a
+echo "*********************************************************************************"
+echo "* Pivotal Greenplum Database Started on port 5432                               *"
+echo "*********************************************************************************"
+echo;echo
+EOF
+
+sudo_append /home/gpadmin/stop_all.sh <<-EOF
+echo "********************************************************************************************"
+echo "* This script stops the Greenplum Database.                                                *"
+echo "********************************************************************************************"
+echo "* Stopping Greenplum Database..."
+source /usr/local/greenplum-db/greenplum_path.sh
+export MASTER_DATA_DIRECTORY="${DATA_DIR}/master/gpseg-1"
+gpstop -M immediate -a
+echo "* Greenplum Database Stopped.                                                              *"
+echo "********************************************************************************************"
+echo "* ALL DATABASE RELATED SERVICES STOPPED.    RUN ./start_all.sh to restart                  *"
+echo "********************************************************************************************"
+echo;
+EOF
+
+sudo chown gpadmin:gpadmin /home/gpadmin/.bashrc /home/gpadmin/.bash_profile /home/gpadmin/start_all.sh /home/gpadmin/stop_all.sh
 sudo chmod 0744 /home/gpadmin/.bashrc /home/gpadmin/.bash_profile
+sudo chmod +x /home/gpadmin/start_all.sh /home/gpadmin/stop_all.sh
 
 echo "Configuring Greenplum"
 

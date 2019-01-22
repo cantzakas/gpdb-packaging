@@ -1,6 +1,6 @@
 #!/bin/sh
 
-GP_DOWNLOAD_URL="https://network.pivotal.io/api/v2/products/pivotal-gpdb/releases/253113/product_files/276404/download"
+GP_DOWNLOAD_URL="https://network.pivotal.io/api/v2/products/pivotal-gpdb/releases/280281/product_files/292163/download"
 
 OUTPUT_FILE="build/centos7-greenplum.ova";
 

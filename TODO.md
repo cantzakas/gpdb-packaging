@@ -8,7 +8,7 @@
   - ssh:tcp:[]:5022:[10.0.2.5]:22 (_assuming VM gets 10.0.2.5 IP upon importing into Virtualbox_)
   - sql:tcp:[]:5432:[10.0.2.5]:5432 (_assuming VM gets 10.0.2.5 IP upon importing into Virtualbox_)
 - REFRESH_TOKEN='**********' ./build.sh failed on first execution (see gpdb-packing-error shown below); investigate whether it was connection problem on downloading the GPDB binary file or need to update instructions to include _--force-download_)
-![./build.sh error to investigate](gpdb-packaging-error.tiff "./build.sh error to investigate")
+![./build.sh error to investigate](gpdb-packaging-error.png "./build.sh error to investigate")
 
 
 # DONE List

@@ -1,22 +1,39 @@
 # TODO List
 - Get a list of Greenplum Database available downloads from Pivotal Network (or latest available download) vs. a pre-defined or hard-coded one.
+- Update scripts for Greenplum Database on Ubuntu (vs. Centos 7)
+- Initiate both `gpseginstall` and `gpinitsystem` (now only `gpinitsystem`) even if we prepare a single-node VM
+- Collect info for Greenplum Database cluster which will drive the GPDB-VM output, i.e. Greenplum Database version, additional components to be installed, number of node, memory size, etc.
 - Update Greenplum Database VM parameters/settings:
-  - Update VM Name to "GPDB-" + {Greenplum Database version major.minor} (extract from GPDB download file?), i.e. GPDB-5.16.0: `VBoxManage modifyvm <VM Name> <new VM Name>`
-  - Update VM Description: `VBoxManage modifyvm <VM Name> --description <text>`
-  - Update VM number of CPUS: `VBoxManage modifyvm <VM Name> --cpu <number>`
-  - Update RAM Settings to i.e. 8192MB: `VBoxManage modifyvm <VM Name> --memory <memorysize in MB>` or `VBoxManage modifyvm <VM Name> --description <vram in MB>` (need to investigate what-is-what)
-  - Update Video Memory to 24MB
-  - Disable Remote Display
+    - Update VM Name to "GPDB-" + {Greenplum Database version major.minor} (extract from GPDB download file?), i.e. GPDB-5.16.0: `VBoxManage modifyvm <VM Name> <new VM Name>`
+    - Update VM Description: `VBoxManage modifyvm <VM Name> --description <text>`
+    - Update VM number of CPUS: `VBoxManage modifyvm <VM Name> --cpu <number>`
+    - Update RAM Settings to i.e. 8192MB: `VBoxManage modifyvm <VM Name> --memory <memorysize in MB>` or `VBoxManage modifyvm <VM Name> --description <vram in MB>` (need to investigate what-is-what)
+    - Update Video Memory to 24MB
+    - Disable Remote Display
 - Get local IP address of the guest VM into a variable, to use further downstream: `hostname -I` (i.e. 10.0.2.15)
 - Set Network Adapter to `NAT` (vs. `null`, `hostonly`, `natnetwork`, etc):  `VBoxManage controlvm <VM Name> nic1 nat` (i.e. 10.0.2.15)
 - Enable Port Forwarding in Greenplum Database VM:
-  - SSH: `VBoxManage controlvm <VM Name> natpf1 ssh,tcp,,2222,10.0.2.15,22` or `VBoxManage controlvm <VM Name> natpf1 ssh,tcp,,2222,,22` (need to check which works "best"
-  - SQL: `VBoxManage controlvm <VM Name> natpf1 ssh,tcp,,5432,10.0.2.15,5432` or `VBoxManage controlvm <VM Name> natpf1 sql,tcp,,5432,,5432` (need to check which works "best"
-  - `VBoxManage controlvm <VM Name> natpf1 sql ....` command is appropriate when the VM is running. Port-forwarding rules can also be set if the VM is not running with the `VBoxManage modifyvm <VM Name> --natpf1 ....` command.
+    - SSH: `VBoxManage controlvm <VM Name> natpf1 ssh,tcp,,2222,10.0.2.15,22` or `VBoxManage controlvm <VM Name> natpf1 ssh,tcp,,2222,,22` (need to check which works "best"
+    - SQL: `VBoxManage controlvm <VM Name> natpf1 ssh,tcp,,5432,10.0.2.15,5432` or `VBoxManage controlvm <VM Name> natpf1 sql,tcp,,5432,,5432` (need to check which works "best"
+    - `VBoxManage controlvm <VM Name> natpf1 sql ....` command is appropriate when the VM is running. Port-forwarding rules can also be set if the VM is not running with the `VBoxManage modifyvm <VM Name> --natpf1 ....` command.
 - REFRESH_TOKEN='**********' ./build.sh failed on first execution (see gpdb-packing-error shown below); investigate whether it was connection problem on downloading the GPDB binary file or need to update instructions to include _--force-download_)
 ![./build.sh error to investigate](gpdb-packaging-error.png "./build.sh error to investigate")
 - Re-consider whether _configuser_ or _gpadmin_ user should be created by scripts, discuss security around doing so but also consider _gpadmin_ is the "standard" user account used for connecting into the VM via SSH, start and stop the database, etc.
-
+- Identify how to download and then install additional Greenplum Database packages:
+    - Greenplum Command Center
+    - Procedural Languages (PL/Python, PL/R, PL/Container)
+    - MADlib
+    - PXF (requires also Java 1.8)
+    - Pivotal Gemfire-Greenplum Connector
+    - Pivotal Greenplum-Kafka Connector
+    - Pivotal Greenplum-Spark Connector
+    - PostGIS
+    - GPText
+    - Pivotal Greenplum Stream Server
+    - Pivotal Greenplum-Informatica Connector
+- Identify how to download and then install other additional packages, i.e.:
+    - Jupyter Notebook
+    - Apache Zeppelin  
 
 # DONE List
 - Update ~/.bashrc with Greenplum Database custom parameters

@@ -2,7 +2,8 @@
 
 GP_DOWNLOAD_URL="https://network.pivotal.io/api/v2/products/pivotal-gpdb/releases/280281/product_files/292163/download"
 
-OUTPUT_FILE="build/centos7-greenplum.ova";
+BUILD="build"
+OUTPUT_FILE="$BUILD/centos7-greenplum.ova"
 
 # Show help if requested
 if [[ -z "$REFRESH_TOKEN" ]] || [[ " $* " == *' --help '* ]] || [[ " $* " == *' help '* ]] || [[ " $* " == *' -h '* ]] || [[ " $* " == *' -? '* ]]; then
@@ -30,37 +31,39 @@ get_access_token() {
     | jq -r '.access_token'
 }
 
+mkdir -p "$BUILD"
+
 # Download Greenplum
-GP_ZIP="build/greenplum.zip"
+GP_ZIP="$BUILD/greenplum.zip"
 if [[ " $* " == *' --force-download '* ]] || ! test -f "$GP_ZIP"; then
   echo "Negotiating token to download Greenplum from Pivotal Network..."
   ACCESS_TOKEN="$(get_access_token "$REFRESH_TOKEN")"
 
-  echo "Downloading Greenplum using access token: $ACCESS_TOKEN";
+  echo "Downloading Greenplum using access token: $ACCESS_TOKEN"
   curl -H "Authorization: Bearer $ACCESS_TOKEN" -L -o "$GP_ZIP" "$GP_DOWNLOAD_URL"
 else
   echo "Using existing greenplum.zip download (specify --force-download to download latest)"
 fi
 
 # Build base OS
-if [[ " $* " == *' --force-build-os '* ]] || ! test -f "build/centos7-os/"*.ovf; then
+if [[ " $* " == *' --force-build-os '* ]] || ! test -f "$BUILD/centos7-os/"*.ovf; then
   echo "Building base OS image..."
-  rm -rf "build/centos7-os" || true
+  rm -rf "$BUILD/centos7-os" || true
   packer build packer/centos7-os.json
 else
   echo "Using existing CentOS7 image (specify --force-build-os to build fresh)"
 fi
 
 # Build VM
-BASE_IMAGE_OVF=( build/centos7-os/*.ovf )
+BASE_IMAGE_OVF=( "$BUILD/centos7-os/"*.ovf )
 echo "Building Greenplum image (based on $BASE_IMAGE_OVF)..."
-rm -rf "build/centos7-greenplum" || true
+rm -rf "$BUILD/centos7-greenplum" || true
 packer build \
   -var "base_os=$BASE_IMAGE_OVF" \
   -var "greenplum_zip=$GP_ZIP" \
   packer/centos7-greenplum.json
 
-mv -f build/centos7-greenplum/*.ova "$OUTPUT_FILE"
+mv -f "$BUILD/centos7-greenplum/"*.ova "$OUTPUT_FILE"
 
 echo
 echo "Build complete; generated $OUTPUT_FILE"

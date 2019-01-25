@@ -29,7 +29,7 @@ brew install packer jq
    REFRESH_TOKEN='<token_here>' ./build.sh
    ```
 
-4. If the script runs successfully, you will get a virtual image in `build/centos7-greenplum/`
+4. If the script runs successfully, you will get a virtual image at `build/centos7-greenplum.ova`
 
 ### Options
 

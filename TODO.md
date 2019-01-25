@@ -16,8 +16,6 @@
     - SSH: `VBoxManage controlvm <VM Name> natpf1 ssh,tcp,,2222,10.0.2.15,22` or `VBoxManage controlvm <VM Name> natpf1 ssh,tcp,,2222,,22` (need to check which works "best"
     - SQL: `VBoxManage controlvm <VM Name> natpf1 ssh,tcp,,5432,10.0.2.15,5432` or `VBoxManage controlvm <VM Name> natpf1 sql,tcp,,5432,,5432` (need to check which works "best"
     - `VBoxManage controlvm <VM Name> natpf1 sql ....` command is appropriate when the VM is running. Port-forwarding rules can also be set if the VM is not running with the `VBoxManage modifyvm <VM Name> --natpf1 ....` command.
-- REFRESH_TOKEN='**********' ./build.sh failed on first execution (see gpdb-packing-error shown below); investigate whether it was connection problem on downloading the GPDB binary file or need to update instructions to include _--force-download_)
-![./build.sh error to investigate](gpdb-packaging-error.png "./build.sh error to investigate")
 - Re-consider whether _configuser_ or _gpadmin_ user should be created by scripts, discuss security around doing so but also consider _gpadmin_ is the "standard" user account used for connecting into the VM via SSH, start and stop the database, etc.
 - Identify how to download and then install additional Greenplum Database packages:
     - Greenplum Command Center
@@ -39,4 +37,6 @@
 - Update ~/.bashrc with Greenplum Database custom parameters
 - Update ~/.bash_profile with Greenplum Database custom parameters
 - Create ~/start_all.sh script to start Greenplum Database with parameters
-- Create ~/stop_all.sh script to stop Greenplum Database with parameters 
+- Create ~/stop_all.sh script to stop Greenplum Database with parameters
+- REFRESH_TOKEN='**********' ./build.sh failed on first execution (see gpdb-packing-error shown below); investigate whether it was connection problem on downloading the GPDB binary file or need to update instructions to include _--force-download_)
+  - turned out to be because `build` folder was not created before download begins; added explicit `mkdir`

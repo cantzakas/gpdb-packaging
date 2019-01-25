@@ -17,7 +17,7 @@
 
       "shutdown_command": "sudo /sbin/halt -h -p",
 
-      "boot_wait": "15s",
+      "boot_wait": "8s",
 
       "export_opts": [],
       "format": "ova"

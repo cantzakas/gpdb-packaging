@@ -67,7 +67,6 @@ else
   echo "Using existing CentOS7 image (specify --force-build-os to build fresh)"
 fi
 
-VM_NAME="GPDB-$GP_VERSION"
 OUTPUT_FILE="$BUILD/centos7-greenplum-$GP_VERSION.ova"
 
 # Build VM
@@ -77,7 +76,7 @@ rm -rf "$BUILD/centos7-greenplum" || true
 packer build \
   -var "base_os=$BASE_IMAGE_OVF" \
   -var "greenplum_zip=$GP_ZIP" \
-  -var "vm_name=$VM_NAME" \
+  -var "gp_version=$GP_VERSION" \
   packer/centos7-greenplum.json
 
 mv -f "$BUILD/centos7-greenplum/"*.ova "$OUTPUT_FILE"
@@ -85,4 +84,4 @@ mv -f "$BUILD/centos7-greenplum/"*.ova "$OUTPUT_FILE"
 echo
 echo "Build complete; generated $OUTPUT_FILE"
 
-cd -
+cd - >/dev/null

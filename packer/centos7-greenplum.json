@@ -2,8 +2,7 @@
   "variables": {
     "ssh_name": "configuser",
     "ssh_pass": "CHANGEME",
-    "hostname": "gpdbox",
-    "vm_name": "GPDB"
+    "hostname": "gpdbox"
   },
   "builders": [
     {
@@ -20,9 +19,14 @@
 
       "boot_wait": "8s",
 
-      "export_opts": [],
       "format": "ova",
-      "vm_name": "{{user `vm_name`}}",
+      "vm_name": "GPDB-{{user `gp_version`}}",
+      "export_opts": [
+        "--manifest",
+        "--vsys", "0",
+        "--description", "CentOS 7 running a single node Greenplum {{user `gp_version`}} database.",
+        "--version", "{{user `gp_version`}}"
+      ],
       "vboxmanage": [
         [ "modifyvm", "{{.Name}}", "--cpus", "2" ],
         [ "modifyvm", "{{.Name}}", "--memory", "8192" ],

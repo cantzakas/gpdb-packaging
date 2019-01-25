@@ -4,7 +4,6 @@
 - Initiate both `gpseginstall` and `gpinitsystem` (now only `gpinitsystem`) even if we prepare a single-node VM
 - Collect info for Greenplum Database cluster which will drive the GPDB-VM output, i.e. Greenplum Database version, additional components to be installed, number of node, memory size, etc.
 - Update Greenplum Database VM parameters/settings:
-    - Update Video Memory to 24MB
     - Disable Remote Display
 - Get local IP address of the guest VM into a variable, to use further downstream: `hostname -I` (i.e. 10.0.2.15)
 - Set Network Adapter to `NAT` (vs. `null`, `hostonly`, `natnetwork`, etc):  `VBoxManage controlvm <VM Name> nic1 nat` (i.e. 10.0.2.15)
@@ -41,3 +40,4 @@
     - Update VM Description: `VBoxManage modifyvm <VM Name> --description <text>`
     - Update VM number of CPUS: `VBoxManage modifyvm <VM Name> --cpu <number>`
     - Update RAM Settings to i.e. 8192MB: `VBoxManage modifyvm <VM Name> --memory <memorysize in MB>` or `VBoxManage modifyvm <VM Name> --description <vram in MB>` (need to investigate what-is-what)
+    - Update Video Memory to 24MB

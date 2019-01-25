@@ -30,6 +30,7 @@
       "vboxmanage": [
         [ "modifyvm", "{{.Name}}", "--cpus", "2" ],
         [ "modifyvm", "{{.Name}}", "--memory", "8192" ],
+        [ "modifyvm", "{{.Name}}", "--vram", "24" ],
         [ "modifyvm", "{{.Name}}", "--natpf1", "ssh-forwarding,tcp,,2222,,22" ],
         [ "modifyvm", "{{.Name}}", "--natpf1", "sql-forwarding,tcp,,5432,,5432" ]
       ]

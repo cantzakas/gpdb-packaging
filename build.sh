@@ -5,7 +5,6 @@ set -e
 GP_DOWNLOAD_URL="https://network.pivotal.io/api/v2/products/pivotal-gpdb/releases/280281/product_files/292163/download"
 
 BUILD="build"
-OUTPUT_FILE="$BUILD/centos7-greenplum.ova"
 
 # Show help if requested
 if [[ -z "$REFRESH_TOKEN" ]] || [[ " $* " == *' --help '* ]] || [[ " $* " == *' help '* ]] || [[ " $* " == *' -h '* ]] || [[ " $* " == *' -? '* ]]; then
@@ -69,10 +68,11 @@ else
 fi
 
 VM_NAME="GPDB-$GP_VERSION"
+OUTPUT_FILE="$BUILD/centos7-greenplum-$GP_VERSION.ova"
 
 # Build VM
 BASE_IMAGE_OVF=( "$BUILD/centos7-os/"*.ovf )
-echo "Building Greenplum image (based on $BASE_IMAGE_OVF)..."
+echo "Building Greenplum $GP_VERSION image (based on $BASE_IMAGE_OVF)..."
 rm -rf "$BUILD/centos7-greenplum" || true
 packer build \
   -var "base_os=$BASE_IMAGE_OVF" \

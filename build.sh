@@ -45,6 +45,14 @@ else
   echo "Using existing greenplum.zip download (specify --force-download to download latest)"
 fi
 
+if [[ "$(head -c1 "$GP_ZIP")" == '{' ]]; then
+  echo "Failed to download greenplum.zip. Error:" >&2
+  cat "$GP_ZIP" >&2
+  echo >&2;
+  rm "$GP_ZIP"
+  exit 1
+fi
+
 # Build base OS
 if [[ " $* " == *' --force-build-os '* ]] || ! test -f "$BUILD/centos7-os/"*.ovf; then
   echo "Building base OS image..."

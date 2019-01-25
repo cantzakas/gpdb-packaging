@@ -2,7 +2,8 @@
   "variables": {
     "ssh_name": "configuser",
     "ssh_pass": "CHANGEME",
-    "hostname": "gpdbox"
+    "hostname": "gpdbox",
+    "vm_name": "GPDB"
   },
   "builders": [
     {
@@ -21,6 +22,7 @@
 
       "export_opts": [],
       "format": "ova",
+      "vm_name": "{{user `vm_name`}}",
       "vboxmanage": [
         [ "modifyvm", "{{.Name}}", "--cpus", "2" ],
         [ "modifyvm", "{{.Name}}", "--memory", "8192" ],

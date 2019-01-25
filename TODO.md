@@ -4,7 +4,6 @@
 - Initiate both `gpseginstall` and `gpinitsystem` (now only `gpinitsystem`) even if we prepare a single-node VM
 - Collect info for Greenplum Database cluster which will drive the GPDB-VM output, i.e. Greenplum Database version, additional components to be installed, number of node, memory size, etc.
 - Update Greenplum Database VM parameters/settings:
-    - Update VM Name to "GPDB-" + {Greenplum Database version major.minor} (extract from GPDB download file?), i.e. GPDB-5.16.0: `VBoxManage modifyvm <VM Name> <new VM Name>`
     - Update VM Description: `VBoxManage modifyvm <VM Name> --description <text>`
     - Update Video Memory to 24MB
     - Disable Remote Display
@@ -39,5 +38,6 @@
     - SQL: `VBoxManage controlvm <VM Name> natpf1 ssh,tcp,,5432,10.0.2.15,5432` or `VBoxManage controlvm <VM Name> natpf1 sql,tcp,,5432,,5432` (need to check which works "best"
     - `VBoxManage controlvm <VM Name> natpf1 sql ....` command is appropriate when the VM is running. Port-forwarding rules can also be set if the VM is not running with the `VBoxManage modifyvm <VM Name> --natpf1 ....` command.
 - Update Greenplum Database VM parameters/settings:
+    - Update VM Name to "GPDB-" + {Greenplum Database version major.minor} (extract from GPDB download file?), i.e. GPDB-5.16.0: `VBoxManage modifyvm <VM Name> <new VM Name>`
     - Update VM number of CPUS: `VBoxManage modifyvm <VM Name> --cpu <number>`
     - Update RAM Settings to i.e. 8192MB: `VBoxManage modifyvm <VM Name> --memory <memorysize in MB>` or `VBoxManage modifyvm <VM Name> --description <vram in MB>` (need to investigate what-is-what)

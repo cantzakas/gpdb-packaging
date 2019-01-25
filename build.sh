@@ -55,6 +55,10 @@ if [[ "$(head -c1 "$GP_ZIP")" == '{' ]]; then
   exit 1
 fi
 
+# Fancy sed/cut regex to extract version number from an output like:
+# 280341880  01-16-2019 02:47   greenplum-db-5.16.0-rhel7-x86_64.bin
+GP_VERSION="$(unzip -qql "$GP_ZIP" | head -n1 | sed -E 's/(([0-9]+\.)+[0-9]+).*/|\1/' | cut -d'|' -f2)"
+
 # Build base OS
 if [[ " $* " == *' --force-build-os '* ]] || ! test -f "$BUILD/centos7-os/"*.ovf; then
   echo "Building base OS image..."
@@ -64,6 +68,8 @@ else
   echo "Using existing CentOS7 image (specify --force-build-os to build fresh)"
 fi
 
+VM_NAME="GPDB-$GP_VERSION"
+
 # Build VM
 BASE_IMAGE_OVF=( "$BUILD/centos7-os/"*.ovf )
 echo "Building Greenplum image (based on $BASE_IMAGE_OVF)..."
@@ -71,6 +77,7 @@ rm -rf "$BUILD/centos7-greenplum" || true
 packer build \
   -var "base_os=$BASE_IMAGE_OVF" \
   -var "greenplum_zip=$GP_ZIP" \
+  -var "vm_name=$VM_NAME" \
   packer/centos7-greenplum.json
 
 mv -f "$BUILD/centos7-greenplum/"*.ova "$OUTPUT_FILE"

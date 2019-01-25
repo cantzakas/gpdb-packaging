@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 GP_DOWNLOAD_URL="https://network.pivotal.io/api/v2/products/pivotal-gpdb/releases/280281/product_files/292163/download"
 
 BUILD="build"

@@ -20,7 +20,11 @@
       "boot_wait": "8s",
 
       "export_opts": [],
-      "format": "ova"
+      "format": "ova",
+      "vboxmanage": [
+        [ "modifyvm", "{{.Name}}", "--natpf1", "ssh-forwarding,tcp,,2222,,22" ],
+        [ "modifyvm", "{{.Name}}", "--natpf1", "sql-forwarding,tcp,,5432,,5432" ]
+      ]
     }
   ],
   "provisioners": [

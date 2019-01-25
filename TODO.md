@@ -12,10 +12,6 @@
     - Disable Remote Display
 - Get local IP address of the guest VM into a variable, to use further downstream: `hostname -I` (i.e. 10.0.2.15)
 - Set Network Adapter to `NAT` (vs. `null`, `hostonly`, `natnetwork`, etc):  `VBoxManage controlvm <VM Name> nic1 nat` (i.e. 10.0.2.15)
-- Enable Port Forwarding in Greenplum Database VM:
-    - SSH: `VBoxManage controlvm <VM Name> natpf1 ssh,tcp,,2222,10.0.2.15,22` or `VBoxManage controlvm <VM Name> natpf1 ssh,tcp,,2222,,22` (need to check which works "best"
-    - SQL: `VBoxManage controlvm <VM Name> natpf1 ssh,tcp,,5432,10.0.2.15,5432` or `VBoxManage controlvm <VM Name> natpf1 sql,tcp,,5432,,5432` (need to check which works "best"
-    - `VBoxManage controlvm <VM Name> natpf1 sql ....` command is appropriate when the VM is running. Port-forwarding rules can also be set if the VM is not running with the `VBoxManage modifyvm <VM Name> --natpf1 ....` command.
 - Re-consider whether _configuser_ or _gpadmin_ user should be created by scripts, discuss security around doing so but also consider _gpadmin_ is the "standard" user account used for connecting into the VM via SSH, start and stop the database, etc.
 - Identify how to download and then install additional Greenplum Database packages:
     - Greenplum Command Center
@@ -40,3 +36,7 @@
 - Create ~/stop_all.sh script to stop Greenplum Database with parameters
 - REFRESH_TOKEN='**********' ./build.sh failed on first execution (see gpdb-packing-error shown below); investigate whether it was connection problem on downloading the GPDB binary file or need to update instructions to include _--force-download_)
   - turned out to be because `build` folder was not created before download begins; added explicit `mkdir`
+- Enable Port Forwarding in Greenplum Database VM:
+    - SSH: `VBoxManage controlvm <VM Name> natpf1 ssh,tcp,,2222,10.0.2.15,22` or `VBoxManage controlvm <VM Name> natpf1 ssh,tcp,,2222,,22` (need to check which works "best"
+    - SQL: `VBoxManage controlvm <VM Name> natpf1 ssh,tcp,,5432,10.0.2.15,5432` or `VBoxManage controlvm <VM Name> natpf1 sql,tcp,,5432,,5432` (need to check which works "best"
+    - `VBoxManage controlvm <VM Name> natpf1 sql ....` command is appropriate when the VM is running. Port-forwarding rules can also be set if the VM is not running with the `VBoxManage modifyvm <VM Name> --natpf1 ....` command.

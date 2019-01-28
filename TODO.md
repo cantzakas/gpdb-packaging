@@ -1,26 +1,6 @@
 # TODO List
-- Get a list of Greenplum Database available downloads from Pivotal Network (or latest available download) vs. a pre-defined or hard-coded one.
-- Update scripts for Greenplum Database on Ubuntu (vs. Centos 7)
-- Initiate both `gpseginstall` and `gpinitsystem` (now only `gpinitsystem`) even if we prepare a single-node VM
-- Collect info for Greenplum Database cluster which will drive the GPDB-VM output, i.e. Greenplum Database version, additional components to be installed, number of node, memory size, etc.
 - Get local IP address of the guest VM into a variable, to use further downstream: `hostname -I` (i.e. 10.0.2.15)
 - Set Network Adapter to `NAT` (vs. `null`, `hostonly`, `natnetwork`, etc):  `VBoxManage controlvm <VM Name> nic1 nat` (i.e. 10.0.2.15)
-- Re-consider whether _configuser_ or _gpadmin_ user should be created by scripts, discuss security around doing so but also consider _gpadmin_ is the "standard" user account used for connecting into the VM via SSH, start and stop the database, etc.
-- Identify how to download and then install additional Greenplum Database packages:
-    - Greenplum Command Center
-    - Procedural Languages (PL/Python, PL/R, PL/Container)
-    - MADlib
-    - PXF (requires also Java 1.8)
-    - Pivotal Gemfire-Greenplum Connector
-    - Pivotal Greenplum-Kafka Connector
-    - Pivotal Greenplum-Spark Connector
-    - PostGIS
-    - GPText
-    - Pivotal Greenplum Stream Server
-    - Pivotal Greenplum-Informatica Connector
-- Identify how to download and then install other additional packages, i.e.:
-    - Jupyter Notebook
-    - Apache Zeppelin  
 
 # DONE List
 - Update ~/.bashrc with Greenplum Database custom parameters

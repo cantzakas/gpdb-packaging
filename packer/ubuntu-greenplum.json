@@ -9,23 +9,22 @@
       "type": "virtualbox-ovf",
       "source_path": "{{user `base_os`}}",
 
-      "output_directory": "build/centos7-greenplum",
+      "output_directory": "build/ubuntu-greenplum",
 
       "ssh_username": "{{user `ssh_name`}}",
       "ssh_password": "{{user `ssh_pass`}}",
       "ssh_wait_timeout": "30s",
 
-      "shutdown_command": "sudo /sbin/halt -h -p",
+      "shutdown_command": "echo '{{user `ssh_pass`}}' | sudo -S shutdown now",
 
       "boot_wait": "8s",
-      "headless": true,
 
       "format": "ova",
-      "vm_name": "GPDB-{{user `gp_version`}}-centos7",
+      "vm_name": "GPDB-{{user `gp_version`}}-ubuntu",
       "export_opts": [
         "--manifest",
         "--vsys", "0",
-        "--description", "CentOS 7 running a single node Greenplum {{user `gp_version`}} database.",
+        "--description", "Ubuntu 18.04 running a single node Greenplum {{user `gp_version`}} database.",
         "--version", "{{user `gp_version`}}"
       ],
       "vboxmanage": [

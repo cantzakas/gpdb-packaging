@@ -5,6 +5,8 @@ set -e
 GP_DOWNLOAD_URL="https://network.pivotal.io/api/v2/products/pivotal-gpdb/releases/280281/product_files/292163/download"
 
 BUILD="build"
+OS="centos7"
+#OS="ubuntu"
 
 # Show help if requested
 if [[ -z "$REFRESH_TOKEN" ]] || [[ " $* " == *' --help '* ]] || [[ " $* " == *' help '* ]] || [[ " $* " == *' -h '* ]] || [[ " $* " == *' -? '* ]]; then
@@ -59,27 +61,27 @@ fi
 GP_VERSION="$(unzip -qql "$GP_ZIP" | head -n1 | sed -E 's/(([0-9]+\.)+[0-9]+).*/|\1/' | cut -d'|' -f2)"
 
 # Build base OS
-if [[ " $* " == *' --force-build-os '* ]] || ! test -f "$BUILD/centos7-os/"*.ovf; then
+if [[ " $* " == *' --force-build-os '* ]] || ! test -f "$BUILD/$OS-os/"*.ovf; then
   echo "Building base OS image..."
-  rm -rf "$BUILD/centos7-os" || true
-  packer build packer/centos7-os.json
+  rm -rf "$BUILD/$OS-os" || true
+  packer build "packer/$OS-os.json"
 else
-  echo "Using existing CentOS7 image (specify --force-build-os to build fresh)"
+  echo "Using existing $OS image (specify --force-build-os to build fresh)"
 fi
 
-OUTPUT_FILE="$BUILD/centos7-greenplum-$GP_VERSION.ova"
+OUTPUT_FILE="$BUILD/$OS-greenplum-$GP_VERSION.ova"
 
 # Build VM
-BASE_IMAGE_OVF=( "$BUILD/centos7-os/"*.ovf )
+BASE_IMAGE_OVF=( "$BUILD/$OS-os/"*.ovf )
 echo "Building Greenplum $GP_VERSION image (based on $BASE_IMAGE_OVF)..."
-rm -rf "$BUILD/centos7-greenplum" || true
+rm -rf "$BUILD/$OS-greenplum" || true
 packer build \
   -var "base_os=$BASE_IMAGE_OVF" \
   -var "greenplum_zip=$GP_ZIP" \
   -var "gp_version=$GP_VERSION" \
-  packer/centos7-greenplum.json
+  "packer/$OS-greenplum.json"
 
-mv -f "$BUILD/centos7-greenplum/"*.ova "$OUTPUT_FILE"
+mv -f "$BUILD/$OS-greenplum/"*.ova "$OUTPUT_FILE"
 
 echo
 echo "Build complete; generated $OUTPUT_FILE"

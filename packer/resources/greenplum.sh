@@ -6,8 +6,16 @@ DATA_DIR="/gpdata"
 TEMP_DIR="/gp_tmp"
 MASTER_HOSTNAME="gpdbox"
 
+install_packages() {
+  if which apt; then
+    sudo apt install -y "$@"
+  else
+    sudo yum install -y "$@"
+  fi
+}
+
 echo "Installing required packages"
-sudo yum install -y unzip
+install_packages unzip
 
 echo "Creating users"
 sudo adduser gpadmin

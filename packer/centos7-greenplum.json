@@ -15,7 +15,7 @@
       "ssh_password": "{{user `ssh_pass`}}",
       "ssh_wait_timeout": "30s",
 
-      "shutdown_command": "sudo /sbin/halt -h -p",
+      "shutdown_command": "sudo /bin/bash -c 'rm -f /etc/sudoers.d/configuser; /sbin/halt -h -p'",
 
       "boot_wait": "8s",
       "headless": true,

@@ -6,6 +6,8 @@ DATA_DIR="/gpdata"
 TEMP_DIR="/gp_tmp"
 MASTER_HOSTNAME="gpdbox"
 
+GPADMIN_PASSWORD="changeme";
+
 install_packages() {
   if which apt; then
     sudo apt install -y "$@"
@@ -18,7 +20,7 @@ echo "Installing required packages"
 install_packages unzip
 
 echo "Creating users"
-sudo adduser gpadmin
+sudo adduser gpadmin -p "$(echo "$GPADMIN_PASSWORD" | openssl passwd -stdin)"
 
 echo "Unzipping Greenplum"
 mkdir -p ~/gp
@@ -268,6 +270,7 @@ sudo chmod 666 "$TEMP_DIR"/*
 echo "Creating database"
 
 sudo su gpadmin -c "
+set -ex
 cd ~
 source ~/.bashrc
 
@@ -289,5 +292,8 @@ sudo su gpadmin -l -c "gpstop -u && psql -d gpadmin -c 'SELECT version();'"
 echo "Cleaning up"
 sudo rm -rf "$TEMP_DIR"
 rm -rf ~/gp
+
+echo "Assigning sudo rights to gpadmin"
+sudo /bin/bash -c 'echo "gpadmin ALL=(ALL) ALL" >> /etc/sudoers.d/gpadmin; chmod 0440 /etc/sudoers.d/gpadmin'
 
 echo "Done."

@@ -2,7 +2,7 @@
 
 set -e
 
-GP_DOWNLOAD_URL="https://network.pivotal.io/api/v2/products/pivotal-gpdb/releases/280281/product_files/292163/download"
+PRODUCT_URL="https://network.pivotal.io/api/v2/products/pivotal-gpdb"
 
 BUILD="build"
 OS="centos7"
@@ -34,13 +34,57 @@ get_access_token() {
     | jq -r '.access_token'
 }
 
+# Ask which Greenplum
+
+echo "Negotiating token to download Greenplum from Pivotal Network..."
+ACCESS_TOKEN="$(get_access_token "$REFRESH_TOKEN")"
+
+get_versions() {
+  RELEASES_URL="$1"
+  RECORD_COUNT="$2"
+  curl -s -H "Authorization: Bearer $ACCESS_TOKEN" -L "$RELEASES_URL" | jq -c -r '.releases | sort_by(.version | split(".") | map(tonumber))[].version' | tail -r -n"$RECORD_COUNT"
+}
+
+get_version_id() {
+  RELEASES_URL="$1"
+  VERSION="$2"
+  curl -s -H "Authorization: Bearer $ACCESS_TOKEN" -L "$RELEASES_URL" | jq -c -r ".releases[] | select(.version == \"$VERSION\") | .id"
+}
+
+get_download_url() {
+  VERSION_URL="$1"
+  curl -s -H "Authorization: Bearer $ACCESS_TOKEN" -L "$VERSION_URL" | jq -r '
+    .file_groups[] |
+    select(.name == "Greenplum Database Server") |
+    .product_files[] |
+    select((.name | contains("RHEL 7")) and (.name | contains("Binary"))) |
+    ._links.download.href
+  '
+}
+
+GP_VERSIONS="$(get_versions "$PRODUCT_URL/releases" 5)"
+echo "Which Greenplum?"
+i=1
+for v in $GP_VERSIONS; do
+  echo "[$i] $v"
+  (( i ++ ))
+done
+printf "Enter number [1]: "
+read CHOSEN_GP
+CHOSEN_GP="${CHOSEN_GP:-1}"
+
+GP_VERSION="$(echo "$GP_VERSIONS" | head -n"$CHOSEN_GP" | tail -n1)"
+echo "Using version $GP_VERSION"
+
+GP_VERSION_ID="$(get_version_id "$PRODUCT_URL/releases" "$GP_VERSION")"
+GP_DOWNLOAD_URL="$(get_download_url "$PRODUCT_URL/releases/$GP_VERSION_ID")"
+
+
 mkdir -p "$BUILD"
 
 # Download Greenplum
-GP_ZIP="$BUILD/greenplum.zip"
+GP_ZIP="$BUILD/greenplum-$GP_VERSION_ID.zip"
 if [[ " $* " == *' --force-download '* ]] || ! test -f "$GP_ZIP"; then
-  echo "Negotiating token to download Greenplum from Pivotal Network..."
-  ACCESS_TOKEN="$(get_access_token "$REFRESH_TOKEN")"
 
   echo "Downloading Greenplum using access token: $ACCESS_TOKEN"
   curl -H "Authorization: Bearer $ACCESS_TOKEN" -L -o "$GP_ZIP" "$GP_DOWNLOAD_URL"
@@ -82,6 +126,13 @@ packer build \
   "packer/$OS-greenplum.json"
 
 mv -f "$BUILD/$OS-greenplum/"*.ova "$OUTPUT_FILE"
+
+if [[ " $* " == *' --remove-gpdb-zip '* ]]; then
+  echo "Removing $GP_ZIP"
+  rm "$GP_ZIP"
+else
+  echo "Keeping $GP_ZIP for future builds. To remove, specify --remove-gpdb-zip"
+fi
 
 echo
 echo "Build complete; generated $OUTPUT_FILE"

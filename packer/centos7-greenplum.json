@@ -2,7 +2,8 @@
   "variables": {
     "ssh_name": "configuser",
     "ssh_pass": "CHANGEME",
-    "hostname": "gpdbox"
+    "hostname": "gpdbox",
+    "install_postgis": "false"
   },
   "builders": [
     {
@@ -48,6 +49,11 @@
       "type": "shell",
       "execute_command": "/bin/bash '{{ .Path }}'",
       "script": "packer/resources/greenplum.sh"
+    },
+    {
+      "type": "shell",
+      "execute_command": "/bin/bash -c 'if {{user `install_postgis`}}; then {{ .Path }}; fi'",
+      "script": "packer/resources/postgis.sh"
     }
   ]
 }

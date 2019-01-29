@@ -11,6 +11,15 @@ request_input() {
   printf "%s" "$VALUE"
 }
 
+request_boolean() {
+  ANSWER="$(request_input "$1" "$2")"
+  if [[ "$ANSWER" == "y"* ]] || [[ "$ANSWER" == "Y"* ]]; then
+    printf "true"
+  else
+    printf "false"
+  fi
+}
+
 get_access_token() {
   curl -s https://network.pivotal.io/api/v2/authentication/access_tokens \
     -d '{"refresh_token": "'"$1"'"}' \

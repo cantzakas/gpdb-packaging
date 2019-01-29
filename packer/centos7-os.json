@@ -1,8 +1,7 @@
 {
   "variables": {
     "ssh_name": "configuser",
-    "ssh_pass": "CHANGEME",
-    "disk_size": "10000"
+    "ssh_pass": "CHANGEME"
   },
   "builders": [
     {

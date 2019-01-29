@@ -51,6 +51,7 @@ GP_VERSION_ID="$(get_version_id "$PRODUCT_URL/releases" "$GP_VERSION")"
 GP_DOWNLOAD_URL="$(get_download_url "$PRODUCT_URL/releases/$GP_VERSION_ID")"
 
 DISK_SIZE="$(request_input "Enter disk size (MB)" "10000")"
+MEMORY_SIZE="$(request_input "Enter RAM memory size (MB)" "8192")"
 
 mkdir -p "$BUILD"
 
@@ -97,6 +98,7 @@ packer build \
   -var "base_os=$BASE_IMAGE_OVF" \
   -var "greenplum_zip=$GP_ZIP" \
   -var "gp_version=$GP_VERSION" \
+  -var "memory=$MEMORY_SIZE" \
   "packer/$OS-greenplum.json"
 
 mv -f "$BUILD/$OS-greenplum/"*.ova "$OUTPUT_FILE"

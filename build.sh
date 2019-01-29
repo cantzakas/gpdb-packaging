@@ -28,39 +28,12 @@ fi
 
 cd "$(dirname "$0")"
 
-get_access_token() {
-  curl -s https://network.pivotal.io/api/v2/authentication/access_tokens \
-    -d '{"refresh_token": "'"$1"'"}' \
-    | jq -r '.access_token'
-}
+source "./helpers.sh"
 
 # Ask which Greenplum
 
 echo "Negotiating token to download Greenplum from Pivotal Network..."
 ACCESS_TOKEN="$(get_access_token "$REFRESH_TOKEN")"
-
-get_versions() {
-  RELEASES_URL="$1"
-  RECORD_COUNT="$2"
-  curl -s -H "Authorization: Bearer $ACCESS_TOKEN" -L "$RELEASES_URL" | jq -c -r '.releases | sort_by(.version | split(".") | map(tonumber))[].version' | tail -r -n"$RECORD_COUNT"
-}
-
-get_version_id() {
-  RELEASES_URL="$1"
-  VERSION="$2"
-  curl -s -H "Authorization: Bearer $ACCESS_TOKEN" -L "$RELEASES_URL" | jq -c -r ".releases[] | select(.version == \"$VERSION\") | .id"
-}
-
-get_download_url() {
-  VERSION_URL="$1"
-  curl -s -H "Authorization: Bearer $ACCESS_TOKEN" -L "$VERSION_URL" | jq -r '
-    .file_groups[] |
-    select(.name == "Greenplum Database Server") |
-    .product_files[] |
-    select((.name | contains("RHEL 7")) and (.name | contains("Binary"))) |
-    ._links.download.href
-  '
-}
 
 GP_VERSIONS="$(get_versions "$PRODUCT_URL/releases" 5)"
 echo "Which Greenplum?"
@@ -69,9 +42,7 @@ for v in $GP_VERSIONS; do
   echo "[$i] $v"
   (( i ++ ))
 done
-printf "Enter number [1]: "
-read CHOSEN_GP
-CHOSEN_GP="${CHOSEN_GP:-1}"
+CHOSEN_GP="$(request_input "Enter number" "1")"
 
 GP_VERSION="$(echo "$GP_VERSIONS" | head -n"$CHOSEN_GP" | tail -n1)"
 echo "Using version $GP_VERSION"
@@ -79,6 +50,7 @@ echo "Using version $GP_VERSION"
 GP_VERSION_ID="$(get_version_id "$PRODUCT_URL/releases" "$GP_VERSION")"
 GP_DOWNLOAD_URL="$(get_download_url "$PRODUCT_URL/releases/$GP_VERSION_ID")"
 
+DISK_SIZE="$(request_input "Enter disk size (MB)" "10000")"
 
 mkdir -p "$BUILD"
 
@@ -108,7 +80,9 @@ GP_VERSION="$(unzip -qql "$GP_ZIP" | head -n1 | sed -E 's/(([0-9]+\.)+[0-9]+).*/
 if [[ " $* " == *' --force-build-os '* ]] || ! test -f "$BUILD/$OS-os/"*.ovf; then
   echo "Building base OS image..."
   rm -rf "$BUILD/$OS-os" || true
-  packer build "packer/$OS-os.json"
+  packer build \
+    -var "disk_size=${DISK_SIZE}" \
+    "packer/$OS-os.json"
 else
   echo "Using existing $OS image (specify --force-build-os to build fresh)"
 fi

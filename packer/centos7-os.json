@@ -1,7 +1,8 @@
 {
   "variables": {
     "ssh_name": "configuser",
-    "ssh_pass": "CHANGEME"
+    "ssh_pass": "CHANGEME",
+    "disk_size": "10000"
   },
   "builders": [
     {
@@ -15,7 +16,7 @@
       "iso_checksum_type": "sha256",
       "iso_checksum": "38d5d51d9d100fd73df031ffd6bd8b1297ce24660dc8c13a3b8b4534a4bd291c",
 
-      "disk_size": 10000,
+      "disk_size": "{{user `disk_size`}}",
 
       "ssh_username": "{{user `ssh_name`}}",
       "ssh_password": "{{user `ssh_pass`}}",

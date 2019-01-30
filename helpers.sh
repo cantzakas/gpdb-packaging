@@ -169,3 +169,37 @@ get_gptext_download_url() {
     contains(\"Text\")) |
     ._links.download.href"
 }
+
+# Get Greenplum Database Command Center related info & files
+get_gpcc_versions() {
+  RELEASES_URL="$1"
+  curl -s -H "Authorization: Bearer $ACCESS_TOKEN" -L "$RELEASES_URL" | jq -c -r "
+    .file_groups[] |
+    select(.name == \"Greenplum Command Center\") |
+    .product_files[] |
+    select(.name |
+    contains(\"Greenplum Command Center\")) |
+    .name"
+}
+
+get_gpcc_version_id() {
+  RELEASES_URL="$1"
+  curl -s -H "Authorization: Bearer $ACCESS_TOKEN" -L "$RELEASES_URL" | jq -c -r "
+    .file_groups[] |
+    select(.name == \"Greenplum Command Center\") |
+    .product_files[] |
+    select(.name |
+    contains(\"Greenplum Command Center\")) |
+    .id"
+}
+
+get_gpcc_download_url() {
+  RELEASES_URL="$1"
+  curl -s -H "Authorization: Bearer $ACCESS_TOKEN" -L "$RELEASES_URL" | jq -c -r "
+    .file_groups[] |
+    select(.name == \"Greenplum Command Center\") |
+    .product_files[] |
+    select(.name |
+    contains(\"Greenplum Command Center\")) |
+    ._links.download.href"
+}

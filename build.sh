@@ -102,6 +102,22 @@ INSTALL_GPTEXT="false"
 #GPTEXT_DOWNLOAD_URL="$(get_gptext_download_url "$PRODUCT_URL/releases/$GP_VERSION_ID")"
 #echo "Fake it for testing: download GPText \"$GPTEXT_VERSION\" (option [\"$CHOSEN_GPTEXT\"] from $GPTEXT_DOWNLOAD_URL"
 
+INSTALL_GPCC="false"
+#INSTALL_GPCC="$(request_boolean "Install Command Center?" "n")"
+#GPCC_VERSIONS="$(get_gpcc_versions "$PRODUCT_URL/releases/$GP_VERSION_ID")"
+#echo "Which Command Center?"
+#i=1
+#for v in $GPCC_VERSIONS; do
+#  echo "[$i] $v"
+#  (( i ++ ))
+#done
+#CHOSEN_GPCC="$(request_input "Enter number" "1")"
+#GPCC_VERSION="$(echo "$GPCC_VERSIONS" | head -n"$CHOSEN_GPCC" | tail -n1)"
+#echo "Using version $GPCC_VERSION"
+#GPCC_VERSION_ID="$(get_gpcc_version_id "$PRODUCT_URL/releases/$GP_VERSION_ID")"
+#GPCC_DOWNLOAD_URL="$(get_gpcc_download_url "$PRODUCT_URL/releases/$GP_VERSION_ID")"
+#echo "Fake it for testing: download Command Center \"$GPCC_VERSION\" (option [\"$CHOSEN_GPCC\"] from $GPCC_DOWNLOAD_URL"
+
 mkdir -p "$BUILD"
 
 # Download Greenplum

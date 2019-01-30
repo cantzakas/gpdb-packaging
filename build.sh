@@ -1,6 +1,7 @@
 #!/bin/sh
 
 set -e
+IFS=$'\n'
 
 PRODUCT_URL="https://network.pivotal.io/api/v2/products/pivotal-gpdb"
 
@@ -35,7 +36,7 @@ source "./helpers.sh"
 echo "Negotiating token to download Greenplum from Pivotal Network..."
 ACCESS_TOKEN="$(get_access_token "$REFRESH_TOKEN")"
 
-GP_VERSIONS="$(get_versions "$PRODUCT_URL/releases" 5)"
+GP_VERSIONS="$(get_gpdb_versions "$PRODUCT_URL/releases" 5)"
 echo "Which Greenplum?"
 i=1
 for v in $GP_VERSIONS; do
@@ -47,14 +48,61 @@ CHOSEN_GP="$(request_input "Enter number" "1")"
 GP_VERSION="$(echo "$GP_VERSIONS" | head -n"$CHOSEN_GP" | tail -n1)"
 echo "Using version $GP_VERSION"
 
-GP_VERSION_ID="$(get_version_id "$PRODUCT_URL/releases" "$GP_VERSION")"
-GP_DOWNLOAD_URL="$(get_download_url "$PRODUCT_URL/releases/$GP_VERSION_ID")"
+GP_VERSION_ID="$(get_gpdb_version_id "$PRODUCT_URL/releases" "$GP_VERSION")"
+GP_DOWNLOAD_URL="$(get_gpdb_download_url "$PRODUCT_URL/releases/$GP_VERSION_ID")"
 
 DISK_SIZE="$(request_input "Enter disk size (MB)" "10000")"
 MEMORY_SIZE="$(request_input "Enter RAM memory size (MB)" "8192")"
 
 INSTALL_POSTGIS="false"
 #INSTALL_POSTGIS="$(request_boolean "Install PostGIS?" "n")"
+#POSTGIS_VERSIONS="$(get_postgis_versions "$PRODUCT_URL/releases/$GP_VERSION_ID")"
+#echo "Which PostGIS?"
+#i=1
+#for v in $POSTGIS_VERSIONS; do
+#  echo "[$i] $v"
+#  (( i ++ ))
+#done
+#CHOSEN_POSTGIS="$(request_input "Enter number" "1")"
+#POSTGIS_VERSION="$(echo "$POSTGIS_VERSIONS" | head -n"$CHOSEN_POSTGIS" | tail -n1)"
+#echo "Using version $POSTGIS_VERSION"
+#POSTGIS_VERSION_ID="$(get_postgis_version_id "$PRODUCT_URL/releases/$GP_VERSION_ID")"
+#POSTGIS_DOWNLOAD_URL="$(get_postgis_download_url "$PRODUCT_URL/releases/$GP_VERSION_ID")"
+#echo "Fake it for testing: download PostGIS \"$POSTGIS_VERSION\" (option [\"$CHOSEN_POSTGIS\"] from $POSTGIS_DOWNLOAD_URL"
+
+INSTALL_MADLIB="false"
+#INSTALL_MADLIB="$(request_boolean "Install MADlib?" "n")"
+#MADLIB_VERSIONS="$(get_madlib_versions "$PRODUCT_URL/releases/$GP_VERSION_ID")"
+#echo "Which MADlib?"
+#i=1
+#for v in $MADLIB_VERSIONS; do
+#  echo "[$i] $v"
+#  (( i ++ ))
+#done
+#CHOSEN_MADLIB="$(request_input "Enter number" "1")"
+#MADLIB_VERSION="$(echo "$MADLIB_VERSIONS" | head -n"$CHOSEN_MADLIB" | tail -n1)"
+#echo "Using version $MADLIB_VERSION"
+#MADLIB_VERSION_ID="$(get_madlib_version_id "$PRODUCT_URL/releases/$GP_VERSION_ID")"
+#MADLIB_DOWNLOAD_URL="$(get_madlib_download_url "$PRODUCT_URL/releases/$GP_VERSION_ID")"
+#echo "Fake it for testing: download PostGIS \"$MADLIB_VERSION\" (option [\"$CHOSEN_MADLIB\"] from $MADLIB_DOWNLOAD_URL"
+
+INSTALL_GPTEXT="false"
+#INSTALL_GPTEXT="$(request_boolean "Install GPText?" "n")"
+#GPTEXT_VERSIONS="$(get_gptext_versions "$PRODUCT_URL/releases/$GP_VERSION_ID")"
+#echo "Which GPText?"
+#i=1
+#for v in $GPTEXT_VERSIONS; do
+#  echo "[$i] $v"
+#  (( i ++ ))
+#done
+#CHOSEN_GPTEXT="$(request_input "Enter number" "1")"
+#GPTEXT_VERSION="$(echo "$GPTEXT_VERSIONS" | head -n"$CHOSEN_GPTEXT" | tail -n1)"
+#echo "Using version $GPTEXT_VERSION"
+#GPTEXT_VERSION_ID="$(get_gptext_version_id "$PRODUCT_URL/releases/$GP_VERSION_ID")"
+#GPTEXT_DOWNLOAD_URL="$(get_gptext_download_url "$PRODUCT_URL/releases/$GP_VERSION_ID")"
+#echo "Fake it for testing: download GPText \"$GPTEXT_VERSION\" (option [\"$CHOSEN_GPTEXT\"] from $GPTEXT_DOWNLOAD_URL"
+
+#sleep 5000
 
 mkdir -p "$BUILD"
 
@@ -103,6 +151,7 @@ packer build \
   -var "gp_version=$GP_VERSION" \
   -var "memory=$MEMORY_SIZE" \
   -var "install_postgis=$INSTALL_POSTGIS" \
+  -var "install_madlib=$INSTALL_MADLIB" \
   "packer/$OS-greenplum.json"
 
 mv -f "$BUILD/$OS-greenplum/"*.ova "$OUTPUT_FILE"

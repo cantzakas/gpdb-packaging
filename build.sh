@@ -166,6 +166,8 @@ packer build \
   -var "memory=$MEMORY_SIZE" \
   -var "install_postgis=$INSTALL_POSTGIS" \
   -var "install_madlib=$INSTALL_MADLIB" \
+  -var "install_gptext=$INSTALL_GPTEXT" \
+  -var "install_gpcc=$INSTALL_GPCC" \
   "packer/$OS-greenplum.json"
 
 mv -f "$BUILD/$OS-greenplum/"*.ova "$OUTPUT_FILE"

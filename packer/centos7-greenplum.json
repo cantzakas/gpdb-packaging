@@ -3,7 +3,10 @@
     "ssh_name": "configuser",
     "ssh_pass": "CHANGEME",
     "hostname": "gpdbox",
-    "install_postgis": "false"
+    "install_postgis": "false",
+    "install_madlib": "false",
+    "install_gptext": "false",
+    "install_gpcc": "false"
   },
   "builders": [
     {

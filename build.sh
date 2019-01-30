@@ -102,8 +102,6 @@ INSTALL_GPTEXT="false"
 #GPTEXT_DOWNLOAD_URL="$(get_gptext_download_url "$PRODUCT_URL/releases/$GP_VERSION_ID")"
 #echo "Fake it for testing: download GPText \"$GPTEXT_VERSION\" (option [\"$CHOSEN_GPTEXT\"] from $GPTEXT_DOWNLOAD_URL"
 
-#sleep 5000
-
 mkdir -p "$BUILD"
 
 # Download Greenplum

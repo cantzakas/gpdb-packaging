@@ -13,4 +13,6 @@ source ~/.bashrc
 gppkg -i ~/plr.gppkg -a -v
 
 gpstop -r -a
+
+psql -d template1 -c \"CREATE LANGUAGE 'plr';\"
 "

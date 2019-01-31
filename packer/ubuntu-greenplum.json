@@ -40,8 +40,8 @@
   "provisioners": [
     {
       "type": "file",
-      "source": "{{user `greenplum_zip`}}",
-      "destination": "~/greenplum.zip"
+      "source": "build/files/",
+      "destination": "~"
     },
     {
       "type": "shell",

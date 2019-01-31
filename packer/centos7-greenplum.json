@@ -45,8 +45,8 @@
   "provisioners": [
     {
       "type": "file",
-      "source": "{{user `greenplum_zip`}}",
-      "destination": "~/greenplum.zip"
+      "source": "build/files/",
+      "destination": "~"
     },
     {
       "type": "shell",
@@ -57,6 +57,11 @@
       "type": "shell",
       "execute_command": "/bin/bash -c 'if {{user `install_postgis`}}; then {{ .Path }}; fi'",
       "script": "packer/resources/postgis.sh"
+    },
+    {
+      "type": "shell",
+      "execute_command": "/bin/bash -c 'INSTALLED_POSTGIS={{user `install_postgis`}} {{ .Path }}'",
+      "script": "packer/resources/finalise.sh"
     }
   ]
 }

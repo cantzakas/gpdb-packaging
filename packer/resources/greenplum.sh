@@ -251,7 +251,7 @@ ENCODING=UNICODE
 # system is initialized. You can always create a database later using
 # the CREATE DATABASE command or the createdb script.
 
-DATABASE_NAME=gpadmin
+#DATABASE_NAME=gpadmin
 
 MASTER_MAX_CONNECT=250
 EOF
@@ -267,7 +267,7 @@ EOF
 sudo chown -R gpadmin:gpadmin "$TEMP_DIR" "$DATA_DIR"
 sudo chmod 666 "$TEMP_DIR"/*
 
-echo "Creating database"
+echo "Creating database cluster"
 
 sudo su gpadmin -c "
 set -ex
@@ -287,13 +287,10 @@ sudo_append "$DATA_DIR/master/gpseg-1/pg_hba.conf" <<-EOF
 host all all 0.0.0.0/0 md5
 EOF
 
-sudo su gpadmin -l -c "gpstop -u && psql -d gpadmin -c 'SELECT version();'"
+sudo chown -R gpadmin:gpadmin /usr/local/greenplum-db*
+
+sudo su gpadmin -l -c "gpstop -u"
 
 echo "Cleaning up"
 sudo rm -rf "$TEMP_DIR"
 rm -rf ~/gp
-
-echo "Assigning sudo rights to gpadmin"
-sudo /bin/bash -c 'echo "gpadmin ALL=(ALL) ALL" >> /etc/sudoers.d/gpadmin; chmod 0440 /etc/sudoers.d/gpadmin'
-
-echo "Done."

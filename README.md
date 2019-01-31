@@ -38,10 +38,7 @@ brew install packer jq
 
 You can specify extra options if needed:
 
-`--force-download`: by default, greenplum will only be downloaded once.
-If you need to re-download it (e.g. a new version), specify this flag
-
 `--force-build-os`: by default, the base OS will only be built once.
 If you need to re-build it (e.g. to use a later OS version), specify this flag.
 
-`--remove-gpdb-zip`: optional, removes greenplum setup file after a successful build.
+`--keep-files`: optional, keeps greenplum setup files after a successful build for next run.

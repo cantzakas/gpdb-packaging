@@ -8,12 +8,25 @@ get_access_token() {
 
 get_pivnet_data() {
   URL="$1"
-  curl -s -H "Authorization: Bearer $ACCESS_TOKEN" -L "$1"
+  curl -s -H "Authorization: Bearer $ACCESS_TOKEN" -L "$URL"
 }
 
 download_pivnet_file() {
   URL="$1"
-  curl -H "Authorization: Bearer $ACCESS_TOKEN" -L "$1"
+  OUTPUT="$2"
+  if ! test -f "$OUTPUT"; then
+    curl -H "Authorization: Bearer $ACCESS_TOKEN" -L "$URL" -o "$OUTPUT"
+  else
+    echo "Using existing $OUTPUT"
+  fi
+
+  if [[ "$(head -c1 "$OUTPUT")" == '{' ]]; then
+    echo "Failed to download $OUTPUT. Error:" >&2
+    cat "$OUTPUT" >&2
+    echo >&2;
+    rm "$OUTPUT"
+    exit 1
+  fi
 }
 
 # Get Greenplum Database Server related info & files
@@ -61,7 +74,7 @@ get_postgis_version_id() {
     select(.name == \"Greenplum Advanced Analytics\") |
     .product_files[] |
     select(.name |
-    contains(\"7\")) |
+    contains(\"RHEL 7\")) |
     select(.name |
     contains(\"PostGIS\")) |
     .id"

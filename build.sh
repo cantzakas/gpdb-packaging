@@ -5,6 +5,7 @@ set -e
 PRODUCT_URL="https://network.pivotal.io/api/v2/products/pivotal-gpdb"
 
 BUILD="build"
+CACHE="$BUILD/cache"
 OS="centos7"
 #OS="ubuntu"
 
@@ -12,7 +13,7 @@ OS="centos7"
 if [[ -z "$REFRESH_TOKEN" ]] || [[ " $* " == *' --help '* ]] || [[ " $* " == *' help '* ]] || [[ " $* " == *' -h '* ]] || [[ " $* " == *' -? '* ]]; then
   echo "Usage:" >&2
   echo >&2
-  echo "REFRESH_TOKEN='<token>' $0 [--force-download] [--force-build-os]" >&2
+  echo "REFRESH_TOKEN='<token>' $0 [--force-build-os] [--keep-files]" >&2
   echo >&2
   exit
 fi
@@ -46,14 +47,14 @@ GP_DOWNLOAD_URL="$(get_gpdb_download_url "$PRODUCT_URL/releases/$GP_VERSION_ID")
 DISK_SIZE="$(request_input "Enter disk size (MB)" "10000")"
 MEMORY_SIZE="$(request_input "Enter RAM memory size (MB)" "8192")"
 
-INSTALL_POSTGIS="false"
-#INSTALL_POSTGIS="$(request_boolean "Install PostGIS?" "n")"
-#POSTGIS_VERSIONS="$(get_postgis_versions "$PRODUCT_URL/releases/$GP_VERSION_ID")"
-#POSTGIS_VERSION="$(request_option "Which PostGIS?" "$POSTGIS_VERSIONS")"
-#echo "Using version $POSTGIS_VERSION"
-#POSTGIS_VERSION_ID="$(get_postgis_version_id "$PRODUCT_URL/releases/$GP_VERSION_ID")"
-#POSTGIS_DOWNLOAD_URL="$(get_postgis_download_url "$PRODUCT_URL/releases/$GP_VERSION_ID")"
-#echo "Fake it for testing: download PostGIS \"$POSTGIS_VERSION\" (option [\"$CHOSEN_POSTGIS\"] from $POSTGIS_DOWNLOAD_URL"
+INSTALL_POSTGIS="$(request_boolean "Install PostGIS?" "n")"
+if [[ "$INSTALL_POSTGIS" == "true" ]]; then
+  POSTGIS_VERSIONS="$(get_postgis_versions "$PRODUCT_URL/releases/$GP_VERSION_ID")"
+  POSTGIS_VERSION="$(request_option "Which PostGIS?" "$POSTGIS_VERSIONS")"
+  echo "Using version $POSTGIS_VERSION"
+  POSTGIS_VERSION_ID="$(get_postgis_version_id "$PRODUCT_URL/releases/$GP_VERSION_ID")"
+  POSTGIS_DOWNLOAD_URL="$(get_postgis_download_url "$PRODUCT_URL/releases/$GP_VERSION_ID")"
+fi
 
 INSTALL_MADLIB="false"
 #INSTALL_MADLIB="$(request_boolean "Install MADlib?" "n")"
@@ -104,26 +105,17 @@ INSTALL_GPCC="false"
 #echo "Fake it for testing: download Command Center \"$GPCC_VERSION\" (option [\"$CHOSEN_GPCC\"] from $GPCC_DOWNLOAD_URL"
 
 mkdir -p "$BUILD"
+mkdir -p "$CACHE"
 
 # Download Greenplum
-GP_ZIP="$BUILD/greenplum-$GP_VERSION_ID.zip"
-if [[ " $* " == *' --force-download '* ]] || ! test -f "$GP_ZIP"; then
-  download_pivnet_file "$GP_DOWNLOAD_URL" > "$GP_ZIP"
-else
-  echo "Using existing greenplum.zip download (specify --force-download to download latest)"
-fi
+GP_ZIP="$CACHE/greenplum-$GP_VERSION_ID.zip"
+download_pivnet_file "$GP_DOWNLOAD_URL" "$GP_ZIP"
 
-if [[ "$(head -c1 "$GP_ZIP")" == '{' ]]; then
-  echo "Failed to download greenplum.zip. Error:" >&2
-  cat "$GP_ZIP" >&2
-  echo >&2;
-  rm "$GP_ZIP"
-  exit 1
+# Download PostGIS
+if [[ -n "$POSTGIS_VERSION_ID" ]]; then
+  POSTGIS_FILE="$CACHE/postgis-$POSTGIS_VERSION_ID.gppkg"
+  download_pivnet_file "$POSTGIS_DOWNLOAD_URL" "$POSTGIS_FILE"
 fi
-
-# Fancy sed/cut regex to extract version number from an output like:
-# 280341880  01-16-2019 02:47   greenplum-db-5.16.0-rhel7-x86_64.bin
-GP_VERSION="$(unzip -qql "$GP_ZIP" | head -n1 | sed -E 's/(([0-9]+\.)+[0-9]+).*/|\1/' | cut -d'|' -f2)"
 
 # Build base OS
 if [[ " $* " == *' --force-build-os '* ]] || ! test -f "$BUILD/$OS-os/"*.ovf; then
@@ -138,13 +130,21 @@ fi
 
 OUTPUT_FILE="$BUILD/$OS-greenplum-$GP_VERSION.ova"
 
+echo "Preparing files to be uploaded"
+
+rm -rf "$BUILD/files" || true
+mkdir -p "$BUILD/files"
+cp "$GP_ZIP" "$BUILD/files/greenplum.zip"
+if [[ -n "$POSTGIS_VERSION_ID" ]]; then
+  cp "$POSTGIS_FILE" "$BUILD/files/postgis.gppkg"
+fi
+
 # Build VM
 BASE_IMAGE_OVF=( "$BUILD/$OS-os/"*.ovf )
 echo "Building Greenplum $GP_VERSION image (based on $BASE_IMAGE_OVF)..."
 rm -rf "$BUILD/$OS-greenplum" || true
 packer build \
   -var "base_os=$BASE_IMAGE_OVF" \
-  -var "greenplum_zip=$GP_ZIP" \
   -var "gp_version=$GP_VERSION" \
   -var "memory=$MEMORY_SIZE" \
   -var "install_postgis=$INSTALL_POSTGIS" \
@@ -155,11 +155,13 @@ packer build \
 
 mv -f "$BUILD/$OS-greenplum/"*.ova "$OUTPUT_FILE"
 
-if [[ " $* " == *' --remove-gpdb-zip '* ]]; then
-  echo "Removing $GP_ZIP"
-  rm "$GP_ZIP"
+rm -r "$BUILD/files"
+
+if [[ " $* " == *' --keep-files '* ]]; then
+  echo "Keeping downloaded files for future builds"
 else
-  echo "Keeping $GP_ZIP for future builds. To remove, specify --remove-gpdb-zip"
+  echo "Removing downloaded files. To keep, specify --keep-files"
+  rm -r "$CACHE"
 fi
 
 echo

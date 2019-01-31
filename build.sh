@@ -1,7 +1,7 @@
 #!/bin/sh
 
 set -e
-IFS=$'\n'
+#IFS=$'\n'
 
 PRODUCT_URL="https://network.pivotal.io/api/v2/products/pivotal-gpdb"
 
@@ -29,7 +29,8 @@ fi
 
 cd "$(dirname "$0")"
 
-source "./helpers.sh"
+source "./helpers/input.sh"
+source "./helpers/pivnet.sh"
 
 # Ask which Greenplum
 

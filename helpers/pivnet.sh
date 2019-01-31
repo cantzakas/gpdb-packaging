@@ -1,21 +1,39 @@
 #!/bin/sh
 
-get_access_token() {
+PIVNET_ACCESS_TOKEN=""
+
+request_access_token() {
   curl -s https://network.pivotal.io/api/v2/authentication/access_tokens \
-    -d '{"refresh_token": "'"$1"'"}' \
-    | jq -r '.access_token'
+    -d "{\"refresh_token\": \"$REFRESH_TOKEN\"}"
+}
+
+get_access_token() {
+  if [[ -z "$PIVNET_ACCESS_TOKEN" ]]; then
+    PIVNET_ACCESS_TOKEN="$(request_access_token | jq -r '.access_token')"
+  fi
+
+  if [[ "$PIVNET_ACCESS_TOKEN" == "null" ]]; then
+    echo "Failed to negotiate pivnet access token." >&2
+    echo "Check provided REFRESH_TOKEN has not expired." >&2
+    echo >&2
+    request_access_token >&2
+    exit 1
+  fi
+
+  echo "$PIVNET_ACCESS_TOKEN"
 }
 
 get_pivnet_data() {
-  URL="$1"
-  curl -s -H "Authorization: Bearer $ACCESS_TOKEN" -L "$URL"
+  local URL="$1"
+  curl -s -L "$URL"
 }
 
 download_pivnet_file() {
-  URL="$1"
-  OUTPUT="$2"
+  local URL="$1"
+  local OUTPUT="$2"
   if ! test -f "$OUTPUT"; then
-    curl -H "Authorization: Bearer $ACCESS_TOKEN" -L "$URL" -o "$OUTPUT"
+    echo "Downloading $URL as $OUTPUT..."
+    curl -H "Authorization: Bearer $(get_access_token)" -L "$URL" -o "$OUTPUT"
   else
     echo "Using existing $OUTPUT"
   fi
@@ -29,220 +47,32 @@ download_pivnet_file() {
   fi
 }
 
-# Get Greenplum Database Server related info & files
-get_gpdb_versions() {
-  RELEASES_URL="$1"
-  RECORD_COUNT="$2"
-  get_pivnet_data "$RELEASES_URL" | jq -c -r '.releases | sort_by(.version | split(".") | map(tonumber))[].version' | tail -r -n"$RECORD_COUNT"
+get_pivnet_product_releases() {
+  local RELEASES_URL="$1"
+  local RECORD_COUNT="$2"
+  get_pivnet_data "$RELEASES_URL" \
+    | jq -r '.releases | sort_by(.version | split(".") | map(tonumber))[].version' \
+    | tail -r -n"$RECORD_COUNT"
 }
 
-get_gpdb_version_id() {
-  RELEASES_URL="$1"
-  VERSION="$2"
-  get_pivnet_data "$RELEASES_URL" | jq -c -r ".releases[] | select(.version == \"$VERSION\") | .id"
+get_pivnet_product_release_id() {
+  local RELEASES_URL="$1"
+  local VERSION="$2"
+  get_pivnet_data "$RELEASES_URL" \
+    | jq -r ".releases[] | select(.version == \"$VERSION\") | .id"
 }
 
-get_gpdb_download_url() {
-  VERSION_URL="$1"
-  get_pivnet_data "$VERSION_URL" | jq -r '
-    .file_groups[] |
-    select(.name == "Greenplum Database Server") |
-    .product_files[] |
-    select((.name | contains("RHEL 7")) and (.name | contains("Binary"))) |
-    ._links.download.href
-  '
+get_pivnet_product_release_data() {
+  local RELEASES_URL="$1"
+  local VERSION_ID="$2"
+  get_pivnet_data "$RELEASES_URL/$VERSION_ID"
 }
 
-# Get PostGIS for Greenplum Database related info & files
-get_postgis_versions() {
-  RELEASES_URL="$1"
-  get_pivnet_data "$RELEASES_URL" | jq -c -r "
-    .file_groups[] |
-    select(.name == \"Greenplum Advanced Analytics\") |
-    .product_files[] |
-    select(.name |
-    contains(\"RHEL 7\")) |
-    select(.name |
-    contains(\"PostGIS\")) |
-    .name"
+pivnet_data_file_group() {
+  local GROUP_NAME="$1"
+  jq -cr ".file_groups[] | select(.name == \"$GROUP_NAME\") | .product_files[]"
 }
 
-get_postgis_version_id() {
-  RELEASES_URL="$1"
-  get_pivnet_data "$RELEASES_URL" | jq -c -r "
-    .file_groups[] |
-    select(.name == \"Greenplum Advanced Analytics\") |
-    .product_files[] |
-    select(.name |
-    contains(\"RHEL 7\")) |
-    select(.name |
-    contains(\"PostGIS\")) |
-    .id"
-}
-
-get_postgis_download_url() {
-  RELEASES_URL="$1"
-  get_pivnet_data "$RELEASES_URL" | jq -c -r "
-    .file_groups[] |
-    select(.name == \"Greenplum Advanced Analytics\") |
-    .product_files[] |
-    select(.name |
-    contains(\"RHEL 7\")) |
-    select(.name |
-    contains(\"PostGIS\")) |
-    ._links.download.href"
-}
-
-# Get PL/R for Greenplum Database related info & files
-get_plr_versions() {
-  RELEASES_URL="$1"
-  get_pivnet_data "$RELEASES_URL" | jq -c -r "
-    .file_groups[] |
-    select(.name == \"Greenplum Procedural Languages\") |
-    .product_files[] |
-    select(.name |
-    contains(\"RHEL 7\")) |
-    select(.name |
-    contains(\"PL/R\")) |
-    .name"
-}
-
-get_plr_version_id() {
-  RELEASES_URL="$1"
-  get_pivnet_data "$RELEASES_URL" | jq -c -r "
-    .file_groups[] |
-    select(.name == \"Greenplum Procedural Languages\") |
-    .product_files[] |
-    select(.name |
-    contains(\"RHEL 7\")) |
-    select(.name |
-    contains(\"PL/R\")) |
-    .id"
-}
-
-get_plr_download_url() {
-  RELEASES_URL="$1"
-  get_pivnet_data "$RELEASES_URL" | jq -c -r "
-    .file_groups[] |
-    select(.name == \"Greenplum Procedural Languages\") |
-    .product_files[] |
-    select(.name |
-    contains(\"RHEL 7\")) |
-    select(.name |
-    contains(\"PL/R\")) |
-    ._links.download.href"
-}
-
-# Get MADlib for Greenplum Database related info & files
-get_madlib_versions() {
-  RELEASES_URL="$1"
-  get_pivnet_data "$RELEASES_URL" | jq -c -r "
-    .file_groups[] |
-    select(.name == \"Greenplum Advanced Analytics\") |
-    .product_files[] |
-    select(.name |
-    contains(\"RHEL 7\")) |
-    select(.name |
-    contains(\"MADlib\")) |
-    .name"
-}
-
-get_madlib_version_id() {
-  RELEASES_URL="$1"
-  get_pivnet_data "$RELEASES_URL" | jq -c -r "
-    .file_groups[] |
-    select(.name == \"Greenplum Advanced Analytics\") |
-    .product_files[] |
-    select(.name |
-    contains(\"RHEL 7\")) |
-    select(.name |
-    contains(\"MADlib\")) |
-    .id"
-}
-
-get_madlib_download_url() {
-  RELEASES_URL="$1"
-  get_pivnet_data "$RELEASES_URL" | jq -c -r "
-    .file_groups[] |
-    select(.name == \"Greenplum Advanced Analytics\") |
-    .product_files[] |
-    select(.name |
-    contains(\"RHEL 7\")) |
-    select(.name |
-    contains(\"MADlib\")) |
-    ._links.download.href"
-}
-
-# Get GPText for Greenplum Database related info & files
-get_gptext_versions() {
-  RELEASES_URL="$1"
-  get_pivnet_data "$RELEASES_URL" | jq -c -r "
-    .file_groups[] |
-    select(.name == \"Greenplum Advanced Analytics\") |
-    .product_files[] |
-    select(.name |
-    contains(\"RHEL\")) |
-    select(.name |
-    contains(\"Text\")) |
-    .name"
-}
-
-get_gptext_version_id() {
-  RELEASES_URL="$1"
-  get_pivnet_data "$RELEASES_URL" | jq -c -r "
-    .file_groups[] |
-    select(.name == \"Greenplum Advanced Analytics\") |
-    .product_files[] |
-    select(.name |
-    contains(\"RHEL\")) |
-    select(.name |
-    contains(\"Text\")) |
-    .id"
-}
-
-get_gptext_download_url() {
-  RELEASES_URL="$1"
-  get_pivnet_data "$RELEASES_URL" | jq -c -r "
-    .file_groups[] |
-    select(.name == \"Greenplum Advanced Analytics\") |
-    .product_files[] |
-    select(.name |
-    contains(\"RHEL\")) |
-    select(.name |
-    contains(\"Text\")) |
-    ._links.download.href"
-}
-
-# Get Greenplum Database Command Center related info & files
-get_gpcc_versions() {
-  RELEASES_URL="$1"
-  get_pivnet_data "$RELEASES_URL" | jq -c -r "
-    .file_groups[] |
-    select(.name == \"Greenplum Command Center\") |
-    .product_files[] |
-    select(.name |
-    contains(\"Greenplum Command Center\")) |
-    .name"
-}
-
-get_gpcc_version_id() {
-  RELEASES_URL="$1"
-  get_pivnet_data "$RELEASES_URL" | jq -c -r "
-    .file_groups[] |
-    select(.name == \"Greenplum Command Center\") |
-    .product_files[] |
-    select(.name |
-    contains(\"Greenplum Command Center\")) |
-    .id"
-}
-
-get_gpcc_download_url() {
-  RELEASES_URL="$1"
-  get_pivnet_data "$RELEASES_URL" | jq -c -r "
-    .file_groups[] |
-    select(.name == \"Greenplum Command Center\") |
-    .product_files[] |
-    select(.name |
-    contains(\"Greenplum Command Center\")) |
-    ._links.download.href"
+pivnet_data_download_url() {
+  jq -r '._links.download.href'
 }

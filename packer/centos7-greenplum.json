@@ -29,7 +29,7 @@
       "export_opts": [
         "--manifest",
         "--vsys", "0",
-        "--description", "CentOS 7 running a single node Greenplum {{user `gp_version`}} database.",
+        "--description", "CentOS 7 running a single node Greenplum {{user `gp_version`}} database.\nPostGIS: {{user `install_postgis`}}",
         "--version", "{{user `gp_version`}}"
       ],
       "vboxmanage": [
@@ -60,7 +60,12 @@
     },
     {
       "type": "shell",
-      "execute_command": "/bin/bash -c 'INSTALLED_POSTGIS={{user `install_postgis`}} {{ .Path }}'",
+      "execute_command": "/bin/bash -c 'if {{user `install_plr`}}; then {{ .Path }}; fi'",
+      "script": "packer/resources/plr.sh"
+    },
+    {
+      "type": "shell",
+      "execute_command": "/bin/bash -c 'INSTALLED_POSTGIS={{user `install_postgis`}} INSTALLED_PLR={{user `install_plr`}} {{ .Path }}'",
       "script": "packer/resources/finalise.sh"
     }
   ]

@@ -61,7 +61,7 @@ get_postgis_versions() {
     select(.name == \"Greenplum Advanced Analytics\") |
     .product_files[] |
     select(.name |
-    contains(\"7\")) |
+    contains(\"RHEL 7\")) |
     select(.name |
     contains(\"PostGIS\")) |
     .name"
@@ -87,9 +87,49 @@ get_postgis_download_url() {
     select(.name == \"Greenplum Advanced Analytics\") |
     .product_files[] |
     select(.name |
-    contains(\"7\")) |
+    contains(\"RHEL 7\")) |
     select(.name |
     contains(\"PostGIS\")) |
+    ._links.download.href"
+}
+
+# Get PL/R for Greenplum Database related info & files
+get_plr_versions() {
+  RELEASES_URL="$1"
+  get_pivnet_data "$RELEASES_URL" | jq -c -r "
+    .file_groups[] |
+    select(.name == \"Greenplum Procedural Languages\") |
+    .product_files[] |
+    select(.name |
+    contains(\"RHEL 7\")) |
+    select(.name |
+    contains(\"PL/R\")) |
+    .name"
+}
+
+get_plr_version_id() {
+  RELEASES_URL="$1"
+  get_pivnet_data "$RELEASES_URL" | jq -c -r "
+    .file_groups[] |
+    select(.name == \"Greenplum Procedural Languages\") |
+    .product_files[] |
+    select(.name |
+    contains(\"RHEL 7\")) |
+    select(.name |
+    contains(\"PL/R\")) |
+    .id"
+}
+
+get_plr_download_url() {
+  RELEASES_URL="$1"
+  get_pivnet_data "$RELEASES_URL" | jq -c -r "
+    .file_groups[] |
+    select(.name == \"Greenplum Procedural Languages\") |
+    .product_files[] |
+    select(.name |
+    contains(\"RHEL 7\")) |
+    select(.name |
+    contains(\"PL/R\")) |
     ._links.download.href"
 }
 
@@ -101,7 +141,7 @@ get_madlib_versions() {
     select(.name == \"Greenplum Advanced Analytics\") |
     .product_files[] |
     select(.name |
-    contains(\"7\")) |
+    contains(\"RHEL 7\")) |
     select(.name |
     contains(\"MADlib\")) |
     .name"
@@ -114,7 +154,7 @@ get_madlib_version_id() {
     select(.name == \"Greenplum Advanced Analytics\") |
     .product_files[] |
     select(.name |
-    contains(\"7\")) |
+    contains(\"RHEL 7\")) |
     select(.name |
     contains(\"MADlib\")) |
     .id"
@@ -127,7 +167,7 @@ get_madlib_download_url() {
     select(.name == \"Greenplum Advanced Analytics\") |
     .product_files[] |
     select(.name |
-    contains(\"7\")) |
+    contains(\"RHEL 7\")) |
     select(.name |
     contains(\"MADlib\")) |
     ._links.download.href"

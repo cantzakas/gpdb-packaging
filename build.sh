@@ -56,6 +56,15 @@ if [[ "$INSTALL_POSTGIS" == "true" ]]; then
   POSTGIS_DOWNLOAD_URL="$(get_postgis_download_url "$PRODUCT_URL/releases/$GP_VERSION_ID")"
 fi
 
+INSTALL_PLR="$(request_boolean "Install PL/R?" "n")"
+if [[ "$INSTALL_PLR" == "true" ]]; then
+  PLR_VERSIONS="$(get_plr_versions "$PRODUCT_URL/releases/$GP_VERSION_ID")"
+  PLR_VERSION="$(request_option "Which PL/R?" "$PLR_VERSIONS")"
+  echo "Using version $PLR_VERSION"
+  PLR_VERSION_ID="$(get_plr_version_id "$PRODUCT_URL/releases/$GP_VERSION_ID")"
+  PLR_DOWNLOAD_URL="$(get_plr_download_url "$PRODUCT_URL/releases/$GP_VERSION_ID")"
+fi
+
 INSTALL_MADLIB="false"
 #INSTALL_MADLIB="$(request_boolean "Install MADlib?" "n")"
 #MADLIB_VERSIONS="$(get_madlib_versions "$PRODUCT_URL/releases/$GP_VERSION_ID")"
@@ -117,6 +126,12 @@ if [[ -n "$POSTGIS_VERSION_ID" ]]; then
   download_pivnet_file "$POSTGIS_DOWNLOAD_URL" "$POSTGIS_FILE"
 fi
 
+# Download PL/R
+if [[ -n "$PLR_VERSION_ID" ]]; then
+  PLR_FILE="$CACHE/plr-$PLR_VERSION_ID.gppkg"
+  download_pivnet_file "$PLR_DOWNLOAD_URL" "$PLR_FILE"
+fi
+
 # Build base OS
 if [[ " $* " == *' --force-build-os '* ]] || ! test -f "$BUILD/$OS-os/"*.ovf; then
   echo "Building base OS image..."
@@ -135,8 +150,13 @@ echo "Preparing files to be uploaded"
 rm -rf "$BUILD/files" || true
 mkdir -p "$BUILD/files"
 cp "$GP_ZIP" "$BUILD/files/greenplum.zip"
+
 if [[ -n "$POSTGIS_VERSION_ID" ]]; then
   cp "$POSTGIS_FILE" "$BUILD/files/postgis.gppkg"
+fi
+
+if [[ -n "$PLR_VERSION_ID" ]]; then
+  cp "$PLR_FILE" "$BUILD/files/plr.gppkg"
 fi
 
 # Build VM
@@ -148,6 +168,7 @@ packer build \
   -var "gp_version=$GP_VERSION" \
   -var "memory=$MEMORY_SIZE" \
   -var "install_postgis=$INSTALL_POSTGIS" \
+  -var "install_plr=$INSTALL_PLR" \
   -var "install_madlib=$INSTALL_MADLIB" \
   -var "install_gptext=$INSTALL_GPTEXT" \
   -var "install_gpcc=$INSTALL_GPCC" \

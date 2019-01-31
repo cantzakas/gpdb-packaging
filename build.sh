@@ -1,7 +1,6 @@
 #!/bin/sh
 
 set -e
-#IFS=$'\n'
 
 PRODUCT_URL="https://network.pivotal.io/api/v2/products/pivotal-gpdb"
 
@@ -38,15 +37,7 @@ echo "Negotiating token to download Greenplum from Pivotal Network..."
 ACCESS_TOKEN="$(get_access_token "$REFRESH_TOKEN")"
 
 GP_VERSIONS="$(get_gpdb_versions "$PRODUCT_URL/releases" 5)"
-echo "Which Greenplum?"
-i=1
-for v in $GP_VERSIONS; do
-  echo "[$i] $v"
-  (( i ++ ))
-done
-CHOSEN_GP="$(request_input "Enter number" "1")"
-
-GP_VERSION="$(echo "$GP_VERSIONS" | head -n"$CHOSEN_GP" | tail -n1)"
+GP_VERSION="$(request_option "Which Greenplum?" "$GP_VERSIONS")"
 echo "Using version $GP_VERSION"
 
 GP_VERSION_ID="$(get_gpdb_version_id "$PRODUCT_URL/releases" "$GP_VERSION")"
@@ -58,14 +49,7 @@ MEMORY_SIZE="$(request_input "Enter RAM memory size (MB)" "8192")"
 INSTALL_POSTGIS="false"
 #INSTALL_POSTGIS="$(request_boolean "Install PostGIS?" "n")"
 #POSTGIS_VERSIONS="$(get_postgis_versions "$PRODUCT_URL/releases/$GP_VERSION_ID")"
-#echo "Which PostGIS?"
-#i=1
-#for v in $POSTGIS_VERSIONS; do
-#  echo "[$i] $v"
-#  (( i ++ ))
-#done
-#CHOSEN_POSTGIS="$(request_input "Enter number" "1")"
-#POSTGIS_VERSION="$(echo "$POSTGIS_VERSIONS" | head -n"$CHOSEN_POSTGIS" | tail -n1)"
+#POSTGIS_VERSION="$(request_option "Which PostGIS?" "$POSTGIS_VERSIONS")"
 #echo "Using version $POSTGIS_VERSION"
 #POSTGIS_VERSION_ID="$(get_postgis_version_id "$PRODUCT_URL/releases/$GP_VERSION_ID")"
 #POSTGIS_DOWNLOAD_URL="$(get_postgis_download_url "$PRODUCT_URL/releases/$GP_VERSION_ID")"
@@ -124,9 +108,7 @@ mkdir -p "$BUILD"
 # Download Greenplum
 GP_ZIP="$BUILD/greenplum-$GP_VERSION_ID.zip"
 if [[ " $* " == *' --force-download '* ]] || ! test -f "$GP_ZIP"; then
-
-  echo "Downloading Greenplum using access token: $ACCESS_TOKEN"
-  curl -H "Authorization: Bearer $ACCESS_TOKEN" -L -o "$GP_ZIP" "$GP_DOWNLOAD_URL"
+  download_pivnet_file "$GP_DOWNLOAD_URL" > "$GP_ZIP"
 else
   echo "Using existing greenplum.zip download (specify --force-download to download latest)"
 fi

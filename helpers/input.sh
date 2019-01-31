@@ -17,3 +17,24 @@ request_boolean() {
     printf "false"
   fi
 }
+
+request_option() {
+  PROMPT="$1"
+  OPTIONS="$2"
+
+  echo "$1" >&2
+
+  OLD_IFS="$IFS"
+  IFS=$'\n'
+
+  local i=1
+  for option in ${OPTIONS}; do
+    echo "[$i] $option" >&2
+    (( i ++ ))
+  done
+
+  IFS="$OLD_IFS"
+
+  CHOICE="$(request_input "Enter option number" "1")"
+  echo "$OPTIONS" | head -n"$CHOICE" | tail -n1
+}

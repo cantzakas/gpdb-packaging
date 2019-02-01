@@ -11,12 +11,9 @@ cd ~
 source ~/.bashrc
 
 gppkg -i ~/plr.gppkg -a -v
-
+source \$GPHOME/greenplum_path.sh
 gpstop -r -a
 
-source \$GPHOME/greenplum_path.sh
-
 psql -d template1 -c \"CREATE LANGUAGE 'plr';\"
-
 psql -d template1 -f \$GPHOME/share/postgresql/extension/plr.sql
 "

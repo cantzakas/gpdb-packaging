@@ -2,7 +2,8 @@
   "variables": {
     "ssh_name": "configuser",
     "ssh_pass": "CHANGEME",
-    "hostname": "gpdbox"
+    "hostname": "gpdbox",
+    "description_extras": ""
   },
   "builders": [
     {
@@ -25,7 +26,7 @@
       "export_opts": [
         "--manifest",
         "--vsys", "0",
-        "--description", "CentOS 7 running a single node Greenplum {{user `gp_version`}} database.\nPostGIS: {{user `install_postgis`}}",
+        "--description", "CentOS 7 running a single node Greenplum {{user `gp_version`}} database{{user `description_extras`}}",
         "--version", "{{user `gp_version`}}"
       ],
       "vboxmanage": [

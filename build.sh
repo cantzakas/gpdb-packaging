@@ -64,12 +64,14 @@ rm -rf "$BUILD/files" >/dev/null || true
 mkdir -p "$BUILD" "$CACHE" "$BUILD/files"
 
 # Download Greenplum
+DESCRIPTION_EXTRAS=""
 GP_ZIP="$CACHE/greenplum-$GP_VERSION_ID.zip"
 download_pivnet_file "$(get_gpdb_download_url "$GP_VERSION_DATA")" "$GP_ZIP"
 cp "$GP_ZIP" "$BUILD/files/greenplum.zip"
 
 # Download PostGIS
 if [[ "$INSTALL_POSTGIS" == "true" ]]; then
+  DESCRIPTION_EXTRAS="$DESCRIPTION_EXTRAS + PostGIS"
   POSTGIS_FILE="$CACHE/postgis-$GP_VERSION_ID.gppkg"
   download_pivnet_file "$(get_postgis_download_url "$GP_VERSION_DATA")" "$POSTGIS_FILE"
   cp "$POSTGIS_FILE" "$BUILD/files/postgis.gppkg"
@@ -77,6 +79,7 @@ fi
 
 # Download PL/R
 if [[ "$INSTALL_PLR" == "true" ]]; then
+  DESCRIPTION_EXTRAS="$DESCRIPTION_EXTRAS + PL/R"
   PLR_FILE="$CACHE/plr-$GP_VERSION_ID.gppkg"
   download_pivnet_file "$(get_plr_download_url "$GP_VERSION_DATA")" "$PLR_FILE"
   cp "$PLR_FILE" "$BUILD/files/plr.gppkg"
@@ -105,6 +108,7 @@ packer build \
   -var "base_os=$BASE_IMAGE_OVF" \
   -var "gp_version=$GP_VERSION" \
   -var "memory=$MEMORY_SIZE" \
+  -var "description_extras=$DESCRIPTION_EXTRAS" \
   -var "install_postgis=$INSTALL_POSTGIS" \
   -var "install_plr=$INSTALL_PLR" \
   -var "install_madlib=$INSTALL_MADLIB" \

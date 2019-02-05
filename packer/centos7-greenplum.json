@@ -2,11 +2,7 @@
   "variables": {
     "ssh_name": "configuser",
     "ssh_pass": "CHANGEME",
-    "hostname": "gpdbox",
-    "install_postgis": "false",
-    "install_madlib": "false",
-    "install_gptext": "false",
-    "install_gpcc": "false"
+    "hostname": "gpdbox"
   },
   "builders": [
     {
@@ -65,8 +61,13 @@
     },
     {
       "type": "shell",
-      "execute_command": "/bin/bash -c 'INSTALLED_POSTGIS={{user `install_postgis`}} INSTALLED_PLR={{user `install_plr`}} {{ .Path }}'",
-      "script": "packer/resources/finalise.sh"
+      "execute_command": "sudo su -l gpadmin /bin/bash -c 'INSTALLED_POSTGIS={{user `install_postgis`}} INSTALLED_PLR={{user `install_plr`}} {{ .Path }}'",
+      "script": "packer/resources/test.sh"
+    },
+    {
+      "type": "shell",
+      "execute_command": "sudo /bin/bash '{{ .Path }}'",
+      "script": "packer/resources/finalise-users.sh"
     }
   ]
 }

@@ -1,5 +1,4 @@
 #!/bin/bash
-
 set -ex
 
 DATA_DIR="/gpdata"
@@ -40,7 +39,7 @@ sudo_append() {
 
 echo "Configuring system"
 
-sudo_append /etc/sysctl.conf <<-EOF
+sudo_append /etc/sysctl.conf <<EOF
 ######################
 # HAWQ CONFIG PARAMS #
 ######################
@@ -70,7 +69,7 @@ net.core.wmem_max=2097152
 vm.overcommit_memory=2
 EOF
 
-sudo_append /etc/security/limits.conf <<-EOF
+sudo_append /etc/security/limits.conf <<EOF
 ######################
 # HAWQ CONFIG PARAMS #
 ######################
@@ -81,28 +80,23 @@ sudo_append /etc/security/limits.conf <<-EOF
 * hard nproc 131072
 EOF
 
-sudo_append /home/gpadmin/.bashrc <<-EOF
+sudo_append /home/gpadmin/.bashrc <<EOF
 # Add GPDB custom variables
 source /usr/local/greenplum-db/greenplum_path.sh
 # source /usr/local/greenplum-cc-web/gpcc_path.sh
 export MASTER_DATA_DIRECTORY="${DATA_DIR}/master/gpseg-1"
-
 EOF
 
-sudo_append /home/gpadmin/.bash_profile <<-EOF
+sudo_append /home/gpadmin/.bash_profile <<EOF
 # Set the PS1 prompt (with colors).
 # Based on http://www-128.ibm.com/developerworks/linux/library/l-tip-prompt/
 # And http://networking.ringofsaturn.com/Unix/Bash-prompts.php .
 PS1="\[\e[36;1m\]\u@\h:\[\e[32;1m\]\w$ \[\e[0m\]"
 
-# Add GPDB custom variables
-source /usr/local/greenplum-db/greenplum_path.sh
-# source /usr/local/greenplum-cc-web/gpcc_path.sh
-export MASTER_DATA_DIRECTORY="${DATA_DIR}/master/gpseg-1"
-
+source ~/.bashrc
 EOF
 
-sudo_append /home/gpadmin/start_all.sh <<-EOF
+sudo_append /home/gpadmin/start_all.sh <<EOF
 echo "*********************************************************************************"
 echo "* Script starts the Greenplum DB                                                *"
 # echo "  , Greenplum Control Center, and Apache Zeppelin *"
@@ -117,7 +111,7 @@ echo "**************************************************************************
 echo;echo
 EOF
 
-sudo_append /home/gpadmin/stop_all.sh <<-EOF
+sudo_append /home/gpadmin/stop_all.sh <<EOF
 echo "********************************************************************************************"
 echo "* This script stops the Greenplum Database.                                                *"
 echo "********************************************************************************************"
@@ -133,12 +127,11 @@ echo;
 EOF
 
 sudo chown gpadmin:gpadmin /home/gpadmin/.bashrc /home/gpadmin/.bash_profile /home/gpadmin/start_all.sh /home/gpadmin/stop_all.sh
-sudo chmod 0744 /home/gpadmin/.bashrc /home/gpadmin/.bash_profile
-sudo chmod +x /home/gpadmin/start_all.sh /home/gpadmin/stop_all.sh
+sudo chmod 0744 /home/gpadmin/.bashrc /home/gpadmin/.bash_profile /home/gpadmin/start_all.sh /home/gpadmin/stop_all.sh
 
 echo "Configuring Greenplum"
 
-sudo_append "$TEMP_DIR/gpinitsystem.single_node" <<-EOF
+sudo_append "$TEMP_DIR/gpinitsystem.single_node" <<EOF
 # FILE NAME: gpinitsystem_singlenode
 
 # A configuration file is needed by the gpinitsystem utility.
@@ -256,11 +249,11 @@ ENCODING=UNICODE
 MASTER_MAX_CONNECT=250
 EOF
 
-sudo_append "$TEMP_DIR/gpdb-hosts" <<-EOF
+sudo_append "$TEMP_DIR/gpdb-hosts" <<EOF
 ${MASTER_HOSTNAME}
 EOF
 
-sudo_append /etc/hosts <<-EOF
+sudo_append /etc/hosts <<EOF
 127.0.0.1 ${MASTER_HOSTNAME}
 EOF
 
@@ -269,27 +262,28 @@ sudo chmod 666 "$TEMP_DIR"/*
 
 echo "Creating database cluster"
 
-sudo su gpadmin -c "
-set -ex
-cd ~
-source ~/.bashrc
+# gpssh-exkeys exits (successfully) in a strange way which kills subsequent commands,
+# so we run it in isolation
+sudo su -l gpadmin -c "gpssh-exkeys -f '${TEMP_DIR}/gpdb-hosts'"
 
-gpssh-exkeys -f '$TEMP_DIR/gpdb-hosts'
-ssh-keyscan -H '$MASTER_HOSTNAME' >> ~/.ssh/known_hosts
+sudo su -l gpadmin <<EOF
+set -ex
+
+ssh-keyscan -H '${MASTER_HOSTNAME}' >> ~/.ssh/known_hosts
 ssh-keyscan -H 'localhost.localdomain' >> ~/.ssh/known_hosts
 
 # gpinitsystem returns non-zero even on success, so this could silently fail and continue!
-gpinitsystem -a -c '$TEMP_DIR/gpinitsystem.single_node' || true
-psql -d template1 -c \"alter user gpadmin password 'pivotal';\"
-"
+gpinitsystem -a -c '${TEMP_DIR}/gpinitsystem.single_node' || true
 
-sudo_append "$DATA_DIR/master/gpseg-1/pg_hba.conf" <<-EOF
-host all all 0.0.0.0/0 md5
+psql -d template1 -c "alter user gpadmin password 'pivotal';"
+echo "host all all 0.0.0.0/0 md5" >> "${DATA_DIR}/master/gpseg-1/pg_hba.conf"
+
+gpstop -u
 EOF
 
+# Who is supposed to own this installation?
+# gpadmin needs permission for installing plugins, but should that be done as root?
 sudo chown -R gpadmin:gpadmin /usr/local/greenplum-db*
-
-sudo su gpadmin -l -c "gpstop -u"
 
 echo "Cleaning up"
 sudo rm -rf "$TEMP_DIR"

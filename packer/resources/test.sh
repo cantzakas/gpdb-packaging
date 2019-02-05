@@ -1,5 +1,5 @@
 #!/bin/bash
-set -ex
+set -e
 
 # This script runs as gpadmin
 

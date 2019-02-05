@@ -13,9 +13,7 @@ psql -d gpadmin -c 'SELECT version();' || die "Failed to install Greenplum"
 
 echo "Installed languages:"
 psql -d gpadmin -c "
-  SELECT
-    lanname AS Language,
-    CASE WHEN lanpltrusted THEN 'true' ELSE 'false' END AS Is_Trusted
+  SELECT lanname AS Language, lanpltrusted::text AS Is_Trusted
   FROM pg_language
   WHERE lanname NOT IN ('internal', 'c', 'sql', 'plpgsql');
 "

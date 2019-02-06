@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 set -e
 
@@ -81,13 +81,13 @@ download get_gpdb_download_url "greenplum.zip"
 
 # Download PostGIS
 if [[ "$INSTALL_POSTGIS" == "true" ]]; then
-  DESCRIPTION_EXTRAS="$DESCRIPTION_EXTRAS + PostGIS"
+  DESCRIPTION_EXTRAS+=" + PostGIS"
   download get_postgis_download_url "postgis.gppkg"
 fi
 
 # Download PL/R
 if [[ "$INSTALL_PLR" == "true" ]]; then
-  DESCRIPTION_EXTRAS="$DESCRIPTION_EXTRAS + PL/R"
+  DESCRIPTION_EXTRAS+=" + PL/R"
   download get_plr_download_url "plr.gppkg"
 fi
 
@@ -106,13 +106,13 @@ if [[ "$INSTALL_PLCONTAINER_PY" == "true" ]]; then
 fi
 
 if [[ "$INSTALL_PLCONTAINER" == "true" ]]; then
-  DESCRIPTION_EXTRAS="$DESCRIPTION_EXTRAS + PL/Container"
+  DESCRIPTION_EXTRAS+=" + PL/Container"
   download get_plcontainer_download_url "plcontainer.gppkg"
 fi
 
 # Download MADlib
 if [[ "$INSTALL_MADLIB" == "true" ]]; then
-  DESCRIPTION_EXTRAS="$DESCRIPTION_EXTRAS + MADlib"
+  DESCRIPTION_EXTRAS+=" + MADlib"
   download get_madlib_download_url "madlib.tar.gz"
 fi
 

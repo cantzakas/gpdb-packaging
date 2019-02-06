@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 get_gpdb_download_url() {
   echo "$1" \

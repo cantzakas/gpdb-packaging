@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 request_input() {
   local PROMPT="$1"
@@ -10,7 +10,7 @@ request_input() {
 
 request_boolean() {
   local ANSWER="$(request_input "$1" "$2")"
-  if [[ "$ANSWER" == "y"* ]] || [[ "$ANSWER" == "Y"* ]]; then
+  if [[ "$ANSWER" =~ ^[yY] ]]; then
     printf "true"
   else
     printf "false"

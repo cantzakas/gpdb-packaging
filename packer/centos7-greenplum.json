@@ -71,6 +71,16 @@
     },
     {
       "type": "shell",
+      "execute_command": "if {{user `install_plcontainer_r`}}; then '{{ .Path }}'; fi",
+      "script": "packer/resources/plcontainer-r.sh"
+    },
+    {
+      "type": "shell",
+      "execute_command": "if {{user `install_plcontainer_py`}}; then '{{ .Path }}'; fi",
+      "script": "packer/resources/plcontainer-py.sh"
+    },
+    {
+      "type": "shell",
       "execute_command": "if {{user `install_madlib`}}; then '{{ .Path }}'; fi",
       "script": "packer/resources/madlib.sh"
     },
@@ -81,6 +91,8 @@
         "INSTALLED_PLR={{user `install_plr`}}",
         "INSTALLED_PLPY={{user `install_plpy`}}",
         "INSTALLED_PLCONTAINER={{user `install_plcontainer`}}",
+        "INSTALLED_PLCONTAINER_R={{user `install_plcontainer_r`}}",
+        "INSTALLED_PLCONTAINER_PY={{user `install_plcontainer_py`}}",
         "INSTALLED_MADLIB={{user `install_madlib`}}"
       ],
       "execute_command": "sudo -i -u gpadmin {{ .Vars }} '{{ .Path }}'",

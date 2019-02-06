@@ -10,8 +10,8 @@ sudo usermod -aG docker gpadmin
 
 sudo systemctl start docker.service
 
-sudo mv ~/plcontainer.gppkg ~/plc-r.tar.gz ~/plc-py.tar.gz /home/gpadmin
-sudo chown gpadmin:gpadmin /home/gpadmin/plcontainer.gppkg /home/gpadmin/plc-r.tar.gz /home/gpadmin/plc-py.tar.gz
+sudo mv ~/plcontainer.gppkg /home/gpadmin
+sudo chown gpadmin:gpadmin /home/gpadmin/plcontainer.gppkg
 
 sudo -i -u gpadmin <<'EOF'
 set -ex
@@ -22,14 +22,6 @@ gpstop -ra
 
 psql -d template1 -c 'CREATE EXTENSION plcontainer;'
 
-plcontainer image-add -f ~/plc-r.tar.gz
-plcontainer image-add -f ~/plc-py.tar.gz
-
-rm ~/plc-*.tar.gz
-
-plcontainer image-list
-
-plcontainer runtime-add -r plc_r -i pivotaldata/plcontainer_r_shared:devel -l r
-plcontainer runtime-add -r plc_py -i pivotaldata/plcontainer_python_shared:devel -l python
+rm ~/plcontainer.gppkg
 
 EOF

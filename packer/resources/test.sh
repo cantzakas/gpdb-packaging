@@ -37,8 +37,13 @@ if [[ "$INSTALLED_PLPY" == "true" ]]; then
 fi
 
 if [[ "$INSTALLED_PLCONTAINER" == "true" ]]; then
-  psql -d gpadmin -c "SELECT * FROM plcontainer_show_config;"
+  echo "Installed container images:"
+  plcontainer image-list
 
+  psql -d gpadmin -c "SELECT * FROM plcontainer_show_config;"
+fi
+
+if [[ "$INSTALLED_PLCONTAINER_R" == "true" ]]; then
   psql -d gpadmin -c "CREATE FUNCTION test_container_r_version() RETURNS text AS \$\$
       # container: plc_r
       R.Version()\$version.string
@@ -46,6 +51,17 @@ if [[ "$INSTALLED_PLCONTAINER" == "true" ]]; then
     || die "Failed to create PL/Container R function"
 
   psql -d gpadmin -c "SELECT test_container_r_version();" || die "Failed to execute PL/Container R function"
+fi
+
+if [[ "$INSTALLED_PLCONTAINER_PY" == "true" ]]; then
+  psql -d gpadmin -c "CREATE FUNCTION test_container_py_version() RETURNS text AS \$\$
+      # container: plc_py
+      import sys
+      return sys.version
+    \$\$ LANGUAGE 'plcontainer';" \
+    || die "Failed to create PL/Container Python function"
+
+  psql -d gpadmin -c "SELECT test_container_py_version();" || die "Failed to execute PL/Container Python function"
 fi
 
 if [[ "$INSTALLED_MADLIB" == "true" ]]; then

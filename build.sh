@@ -48,7 +48,8 @@ MEMORY_SIZE="$(request_input "Enter RAM memory size (MB)" "8192")"
 INSTALL_POSTGIS="$(request_boolean "Install PostGIS?" "n")"
 INSTALL_PLR="$(request_boolean "Install PL/R?" "n")"
 INSTALL_PLPY="$(request_boolean "Install PL/Python?" "n")"
-INSTALL_PLCONTAINER="$(request_boolean "Install PL/Container?" "n")"
+INSTALL_PLCONTAINER_R="$(request_boolean "Install PL/Container R?" "n")"
+INSTALL_PLCONTAINER_PY="$(request_boolean "Install PL/Container Python?" "n")"
 INSTALL_MADLIB="$(request_boolean "Install MADlib?" "n")"
 #INSTALL_GPTEXT="$(request_boolean "Install GPText?" "n")"
 #INSTALL_GPCC="$(request_boolean "Install Command Center?" "n")"
@@ -88,20 +89,29 @@ if [[ "$INSTALL_PLR" == "true" ]]; then
 fi
 
 # Download PL/Container
+
+INSTALL_PLCONTAINER="false"
+
+if [[ "$INSTALL_PLCONTAINER_R" == "true" ]]; then
+  PLC_R_FILE="$CACHE/plc-r-$GP_VERSION_ID.tar.gz"
+  download_pivnet_file "$(get_plc_r_download_url "$GP_VERSION_DATA")" "$PLC_R_FILE"
+  cp "$PLC_R_FILE" "$BUILD/files/plc-r.tar.gz"
+  INSTALL_PLCONTAINER="true"
+fi
+
+if [[ "$INSTALL_PLCONTAINER_PY" == "true" ]]; then
+  PLC_PY_FILE="$CACHE/plc-py-$GP_VERSION_ID.tar.gz"
+  download_pivnet_file "$(get_plc_py_download_url "$GP_VERSION_DATA")" "$PLC_PY_FILE"
+  cp "$PLC_PY_FILE" "$BUILD/files/plc-py.tar.gz"
+  INSTALL_PLCONTAINER="true"
+fi
+
 if [[ "$INSTALL_PLCONTAINER" == "true" ]]; then
   DESCRIPTION_EXTRAS="$DESCRIPTION_EXTRAS + PL/Container"
 
   PLCONTAINER_FILE="$CACHE/plcontainer-$GP_VERSION_ID.gppkg"
   download_pivnet_file "$(get_plcontainer_download_url "$GP_VERSION_DATA")" "$PLCONTAINER_FILE"
   cp "$PLCONTAINER_FILE" "$BUILD/files/plcontainer.gppkg"
-
-  PLC_R_FILE="$CACHE/plc-r-$GP_VERSION_ID.tar.gz"
-  download_pivnet_file "$(get_plc_r_download_url "$GP_VERSION_DATA")" "$PLC_R_FILE"
-  cp "$PLC_R_FILE" "$BUILD/files/plc-r.tar.gz"
-
-  PLC_PY_FILE="$CACHE/plc-py-$GP_VERSION_ID.tar.gz"
-  download_pivnet_file "$(get_plc_py_download_url "$GP_VERSION_DATA")" "$PLC_PY_FILE"
-  cp "$PLC_PY_FILE" "$BUILD/files/plc-py.tar.gz"
 fi
 
 # Download MADlib
@@ -139,6 +149,8 @@ packer build \
   -var "install_plr=$INSTALL_PLR" \
   -var "install_plpy=$INSTALL_PLPY" \
   -var "install_plcontainer=$INSTALL_PLCONTAINER" \
+  -var "install_plcontainer_r=$INSTALL_PLCONTAINER_R" \
+  -var "install_plcontainer_py=$INSTALL_PLCONTAINER_PY" \
   -var "install_madlib=$INSTALL_MADLIB" \
   -var "install_gptext=$INSTALL_GPTEXT" \
   -var "install_gpcc=$INSTALL_GPCC" \

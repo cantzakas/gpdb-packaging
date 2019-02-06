@@ -36,6 +36,18 @@ if [[ "$INSTALLED_PLPY" == "true" ]]; then
   psql -d gpadmin -c "SELECT test_py_version();" || die "Failed to execute PL/Python function"
 fi
 
+if [[ "$INSTALLED_PLCONTAINER" == "true" ]]; then
+  psql -d gpadmin -c "SELECT * FROM plcontainer_show_config;"
+
+  psql -d gpadmin -c "CREATE FUNCTION test_container_r_version() RETURNS text AS \$\$
+      # container: plc_r
+      R.Version()\$version.string
+    \$\$ LANGUAGE 'plcontainer';" \
+    || die "Failed to create PL/Container R function"
+
+  psql -d gpadmin -c "SELECT test_container_r_version();" || die "Failed to execute PL/Container R function"
+fi
+
 if [[ "$INSTALLED_MADLIB" == "true" ]]; then
   psql -d gpadmin -c "SELECT madlib.version();" || die "Failed to install MADlib"
 fi

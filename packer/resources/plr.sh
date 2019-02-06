@@ -1,13 +1,15 @@
 #!/bin/bash
 set -ex
 
-sudo cp ~/plr.gppkg /home/gpadmin
+sudo mv ~/plr.gppkg /home/gpadmin
 sudo chown gpadmin:gpadmin /home/gpadmin/plr.gppkg
 
 sudo -i -u gpadmin <<'EOF'
 set -ex
 
 gppkg -i ~/plr.gppkg -a -v
+rm ~/plr.gppkg
+
 source "$GPHOME/greenplum_path.sh"
 gpstop -r -a
 

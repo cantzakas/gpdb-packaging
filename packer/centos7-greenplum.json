@@ -66,6 +66,11 @@
     },
     {
       "type": "shell",
+      "execute_command": "if {{user `install_plcontainer`}}; then '{{ .Path }}'; fi",
+      "script": "packer/resources/plcontainer.sh"
+    },
+    {
+      "type": "shell",
       "execute_command": "if {{user `install_madlib`}}; then '{{ .Path }}'; fi",
       "script": "packer/resources/madlib.sh"
     },
@@ -75,6 +80,7 @@
         "INSTALLED_POSTGIS={{user `install_postgis`}}",
         "INSTALLED_PLR={{user `install_plr`}}",
         "INSTALLED_PLPY={{user `install_plpy`}}",
+        "INSTALLED_PLCONTAINER={{user `install_plcontainer`}}",
         "INSTALLED_MADLIB={{user `install_madlib`}}"
       ],
       "execute_command": "sudo -i -u gpadmin {{ .Vars }} '{{ .Path }}'",

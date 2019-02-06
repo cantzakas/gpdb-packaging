@@ -7,6 +7,7 @@
   },
   "builders": [
     {
+      "name": "virtualbox",
       "type": "virtualbox-ovf",
       "source_path": "{{user `base_os`}}",
 
@@ -37,6 +38,28 @@
         [ "modifyvm", "{{.Name}}", "--natpf1", "ssh-forwarding,tcp,,2222,,22" ],
         [ "modifyvm", "{{.Name}}", "--natpf1", "sql-forwarding,tcp,,5432,,5432" ]
       ]
+    },
+    {
+      "name": "vmware",
+      "type": "vmware-vmx",
+      "source_path": "{{user `base_os`}}",
+
+      "output_directory": "build/centos7-greenplum",
+
+      "ssh_username": "{{user `ssh_name`}}",
+      "ssh_password": "{{user `ssh_pass`}}",
+      "ssh_wait_timeout": "30s",
+
+      "shutdown_command": "sudo /bin/bash -c 'rm -f /etc/sudoers.d/configuser; /sbin/halt -h -p'",
+
+      "boot_wait": "8s",
+      "headless": true,
+
+      "vm_name": "GPDB-{{user `gp_version`}}-centos7",
+      "vmx_data": {
+        "memsize": "{{user `memory`}}",
+        "numvcpus": "2"
+      }
     }
   ],
   "provisioners": [

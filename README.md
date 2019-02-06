@@ -5,15 +5,20 @@ Repeatable builds for Greenplum VMs
 ## Dependencies
 
 You will need
-[Packer](https://www.packer.io/),
-[VirtualBox](https://www.virtualbox.org/) and
-[jq](https://stedolan.github.io/jq/).
+[Packer](https://www.packer.io/) and
+[jq](https://stedolan.github.io/jq/), as well as at least one of:
+
+* [VirtualBox](https://www.virtualbox.org/)
+* [VMWare](https://www.vmware.com/) (requires **enterprise** license)
 
 These can be installed using [Homebrew](https://brew.sh/):
 
 ```bash
-brew cask install virtualbox
 brew install packer jq
+
+brew cask install virtualbox
+# or
+brew cask install vmware-fusion
 ```
 
 ## Usage
@@ -38,7 +43,16 @@ brew install packer jq
 
 You can specify extra options if needed:
 
-`--force-build-os`: by default, the base OS will only be built once.
-If you need to re-build it (e.g. to use a later OS version), specify this flag.
-
 `--keep-files`: optional, keeps greenplum setup files after a successful build for next run.
+
+### Debugging
+
+#### VirtualBox
+
+If you try to build a new image while running an existing image in VirtualBox, it can corrupt the base OS image.
+To resolve this, you must force a rebuild of the base OS image (answer "yes" to the "rebuild?" question).
+
+#### VMWare
+
+If you get an immediate error about networking issues,
+you need to open the VMWare Fusion app and accept the license agreement.

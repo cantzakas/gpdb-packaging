@@ -11,19 +11,38 @@ CACHE="$BUILD/cache"
 if [[ -z "$REFRESH_TOKEN" || " $* " == *' --help '* || " $* " == *' help '* || " $* " == *' -h '* || " $* " == *' -? '* ]]; then
   echo "Usage:" >&2
   echo >&2
-  echo "REFRESH_TOKEN='<token>' $0 [--force-build-os] [--keep-files]" >&2
+  echo "REFRESH_TOKEN='<token>' $0 [--keep-files]" >&2
   echo >&2
   exit
 fi
 
 # Show dependencies if not available
 if ! which packer >/dev/null || ! which virtualbox >/dev/null || ! which jq >/dev/null; then
-  echo "Need to install packer, virtualbox and jq!" >&2
-  echo "  brew cask install virtualbox" >&2
+  echo "Need to install packer and jq!" >&2
   echo "  brew install packer jq" >&2
   echo >&2
   exit 1
 fi
+
+# Detect installed virtual machine managers
+
+VM_MANAGERS=""
+if which virtualbox >/dev/null; then
+  VM_MANAGERS+="virtualbox"$'\n'
+fi
+
+if which vmnet-cli >/dev/null; then
+  VM_MANAGERS+="vmware"$'\n'
+fi
+
+if [[ -z "$VM_MANAGERS" ]]; then
+  echo "Need to install a virtual machine manager, e.g.:" >&2
+  echo "  brew cask install virtualbox" >&2
+  echo "  (see README.md for more)" >&2
+  echo >&2
+  exit 1
+fi
+
 
 cd "$(dirname "$0")"
 
@@ -37,12 +56,34 @@ source "./helpers/pivnet_gpdb.sh"
 
 echo "Configuring..."
 
+VM_MANAGER="$(request_option "Which VM management tool?" "$VM_MANAGERS")"
+
+if [[ "$VM_MANAGER" == "virtualbox" ]]; then
+  VM_EXT="ovf"
+  OUT_EXT="ova"
+elif [[ "$VM_MANAGER" == "vmware" ]]; then
+  VM_EXT="vmx"
+  OUT_EXT="vmx"
+else
+  echo "Unknown VM manager!" >&2
+  exit 1
+fi
+
 OS="$(request_option "Which base OS?" "centos7")"
+
+BASE_IMAGE_DIR="$BUILD/$OS-os-$VM_MANAGER"
+BUILD_OS="true"
+if test -f "$BASE_IMAGE_DIR/"*."$VM_EXT"; then
+  BUILD_OS="$(request_boolean "Found existing base OS image for $OS on $VM_MANAGER - rebuild?" "n")"
+fi
 
 GP_VERSIONS="$(get_pivnet_product_releases "$PRODUCT_URL/releases" 5)"
 GP_VERSION="$(request_option "Which Greenplum?" "$GP_VERSIONS")"
 
-DISK_SIZE="$(request_input "Enter disk size (MB)" "16000")"
+if [[ "$BUILD_OS" == "true" ]]; then
+  DISK_SIZE="$(request_input "Enter disk size (MB)" "16000")"
+fi
+
 MEMORY_SIZE="$(request_input "Enter RAM memory size (MB)" "8192")"
 
 INSTALL_POSTGIS="$(request_boolean "Install PostGIS?" "n")"
@@ -117,22 +158,25 @@ if [[ "$INSTALL_MADLIB" == "true" ]]; then
 fi
 
 # Build base OS
-if [[ " $* " == *' --force-build-os '* ]] || ! test -f "$BUILD/$OS-os/"*.ovf; then
+if [[ "$BUILD_OS" == "true" ]]; then
   echo "Building base OS image..."
-  rm -rf "$BUILD/$OS-os" || true
+  rm -rf "$BASE_IMAGE_DIR" || true
   packer build \
+    -only="$VM_MANAGER" \
     -var "disk_size=${DISK_SIZE}" \
+    -var "build_dir=build/centos7-os" \
     "packer/$OS-os.json"
 else
-  echo "Using existing $OS image (specify --force-build-os to build fresh)"
+  echo "Using existing $OS image"
 fi
 
 # Build VM
-BASE_IMAGE_OVF=( "$BUILD/$OS-os/"*.ovf )
-echo "Building Greenplum $GP_VERSION image (based on $BASE_IMAGE_OVF)..."
+BASE_IMAGE=( "$BASE_IMAGE_DIR/"*."$VM_EXT" )
+echo "Building Greenplum $GP_VERSION image (based on $BASE_IMAGE)..."
 rm -rf "$BUILD/$OS-greenplum" || true
 packer build \
-  -var "base_os=$BASE_IMAGE_OVF" \
+  -only="$VM_MANAGER" \
+  -var "base_os=$BASE_IMAGE" \
   -var "gp_version=$GP_VERSION" \
   -var "memory=$MEMORY_SIZE" \
   -var "description_extras=$DESCRIPTION_EXTRAS" \
@@ -147,8 +191,8 @@ packer build \
   -var "install_gpcc=$INSTALL_GPCC" \
   "packer/$OS-greenplum.json"
 
-OUTPUT_FILE="$BUILD/$OS-greenplum-$GP_VERSION.ova"
-mv -f "$BUILD/$OS-greenplum/"*.ova "$OUTPUT_FILE"
+OUTPUT_FILE="$BUILD/$OS-greenplum-$GP_VERSION.$OUT_EXT"
+mv -f "$BUILD/$OS-greenplum/"*."$OUT_EXT" "$OUTPUT_FILE"
 
 echo "Cleaning up..."
 

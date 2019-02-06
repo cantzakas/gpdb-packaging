@@ -22,13 +22,22 @@ request_option() {
   local OPTIONS="$2"
   local CHOICE=1
 
-  if (( "$(echo "$OPTIONS" | wc -l)" > 1 )); then
+  # Counting this way is more reliable than wc -l
+  local total=0
+  OLD_IFS="$IFS"
+  IFS=$'\n'
+  for option in ${OPTIONS}; do
+    (( total ++ ))
+  done
+  IFS="$OLD_IFS"
+
+  if (( "$total" > 1 )); then
     echo "$1" >&2
     local i=1
     OLD_IFS="$IFS"
     IFS=$'\n'
     for option in ${OPTIONS}; do
-      echo "[$i] $option" >&2
+      echo "  [$i] $option" >&2
       (( i ++ ))
     done
     IFS="$OLD_IFS"

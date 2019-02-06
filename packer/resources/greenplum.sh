@@ -257,8 +257,14 @@ sudo_append /etc/hosts <<EOF
 127.0.0.1 ${MASTER_HOSTNAME}
 EOF
 
+sudo hostnamectl set-hostname "$MASTER_HOSTNAME"
+
 sudo chown -R gpadmin:gpadmin "$TEMP_DIR" "$DATA_DIR"
 sudo chmod 666 "$TEMP_DIR"/*
+
+# Who is supposed to own this installation?
+# gpadmin needs permission for installing plugins, but should that be done as root?
+sudo chown -R gpadmin:gpadmin /usr/local/greenplum-db*
 
 echo "Creating database cluster"
 
@@ -272,18 +278,13 @@ set -ex
 ssh-keyscan -H '${MASTER_HOSTNAME}' >> ~/.ssh/known_hosts
 ssh-keyscan -H 'localhost.localdomain' >> ~/.ssh/known_hosts
 
-# gpinitsystem returns non-zero even on success, so this could silently fail and continue!
-gpinitsystem -a -c '${TEMP_DIR}/gpinitsystem.single_node' || true
+gpinitsystem -a -c '${TEMP_DIR}/gpinitsystem.single_node'
 
 psql -d template1 -c "alter user gpadmin password 'pivotal';"
 echo "host all all 0.0.0.0/0 md5" >> '${DATA_DIR}/master/gpseg-1/pg_hba.conf'
 
 gpstop -u
 EOF
-
-# Who is supposed to own this installation?
-# gpadmin needs permission for installing plugins, but should that be done as root?
-sudo chown -R gpadmin:gpadmin /usr/local/greenplum-db*
 
 echo "Cleaning up"
 sudo rm -rf "$TEMP_DIR"

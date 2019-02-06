@@ -264,9 +264,9 @@ echo "Creating database cluster"
 
 # gpssh-exkeys exits (successfully) in a strange way which kills subsequent commands,
 # so we run it in isolation
-sudo su -l gpadmin -c "gpssh-exkeys -f '${TEMP_DIR}/gpdb-hosts'"
+sudo -i -u gpadmin gpssh-exkeys -f "${TEMP_DIR}/gpdb-hosts"
 
-sudo su -l gpadmin <<EOF
+sudo -i -u gpadmin <<EOF
 set -ex
 
 ssh-keyscan -H '${MASTER_HOSTNAME}' >> ~/.ssh/known_hosts
@@ -276,7 +276,7 @@ ssh-keyscan -H 'localhost.localdomain' >> ~/.ssh/known_hosts
 gpinitsystem -a -c '${TEMP_DIR}/gpinitsystem.single_node' || true
 
 psql -d template1 -c "alter user gpadmin password 'pivotal';"
-echo "host all all 0.0.0.0/0 md5" >> "${DATA_DIR}/master/gpseg-1/pg_hba.conf"
+echo "host all all 0.0.0.0/0 md5" >> '${DATA_DIR}/master/gpseg-1/pg_hba.conf'
 
 gpstop -u
 EOF

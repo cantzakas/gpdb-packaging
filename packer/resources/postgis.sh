@@ -4,7 +4,7 @@ set -ex
 sudo cp ~/postgis.gppkg /home/gpadmin
 sudo chown gpadmin:gpadmin /home/gpadmin/postgis.gppkg
 
-sudo su -l gpadmin <<'EOF'
+sudo -i -u gpadmin <<'EOF'
 set -ex
 
 gppkg -i ~/postgis.gppkg -a -v

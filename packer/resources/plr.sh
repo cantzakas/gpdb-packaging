@@ -4,7 +4,7 @@ set -ex
 sudo cp ~/plr.gppkg /home/gpadmin
 sudo chown gpadmin:gpadmin /home/gpadmin/plr.gppkg
 
-sudo su -l gpadmin <<'EOF'
+sudo -i -u gpadmin <<'EOF'
 set -ex
 
 gppkg -i ~/plr.gppkg -a -v

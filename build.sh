@@ -47,6 +47,7 @@ MEMORY_SIZE="$(request_input "Enter RAM memory size (MB)" "8192")"
 
 INSTALL_POSTGIS="$(request_boolean "Install PostGIS?" "n")"
 INSTALL_PLR="$(request_boolean "Install PL/R?" "n")"
+INSTALL_PLPY="$(request_boolean "Install PL/Python?" "n")"
 INSTALL_MADLIB="$(request_boolean "Install MADlib?" "n")"
 #INSTALL_GPTEXT="$(request_boolean "Install GPText?" "n")"
 #INSTALL_GPCC="$(request_boolean "Install Command Center?" "n")"
@@ -118,6 +119,7 @@ packer build \
   -var "description_extras=$DESCRIPTION_EXTRAS" \
   -var "install_postgis=$INSTALL_POSTGIS" \
   -var "install_plr=$INSTALL_PLR" \
+  -var "install_plpy=$INSTALL_PLPY" \
   -var "install_madlib=$INSTALL_MADLIB" \
   -var "install_gptext=$INSTALL_GPTEXT" \
   -var "install_gpcc=$INSTALL_GPCC" \

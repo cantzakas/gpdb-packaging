@@ -61,9 +61,15 @@
     },
     {
       "type": "shell",
+      "execute_command": "if {{user `install_madlib`}}; then '{{ .Path }}'; fi",
+      "script": "packer/resources/madlib.sh"
+    },
+    {
+      "type": "shell",
       "environment_vars": [
         "INSTALLED_POSTGIS={{user `install_postgis`}}",
-        "INSTALLED_PLR={{user `install_plr`}}"
+        "INSTALLED_PLR={{user `install_plr`}}",
+        "INSTALLED_MADLIB={{user `install_madlib`}}"
       ],
       "execute_command": "sudo -i -u gpadmin {{ .Vars }} '{{ .Path }}'",
       "script": "packer/resources/test.sh"

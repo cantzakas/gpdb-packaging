@@ -47,7 +47,7 @@ MEMORY_SIZE="$(request_input "Enter RAM memory size (MB)" "8192")"
 
 INSTALL_POSTGIS="$(request_boolean "Install PostGIS?" "n")"
 INSTALL_PLR="$(request_boolean "Install PL/R?" "n")"
-#INSTALL_MADLIB="$(request_boolean "Install MADlib?" "n")"
+INSTALL_MADLIB="$(request_boolean "Install MADlib?" "n")"
 #INSTALL_GPTEXT="$(request_boolean "Install GPText?" "n")"
 #INSTALL_GPCC="$(request_boolean "Install Command Center?" "n")"
 
@@ -85,7 +85,14 @@ if [[ "$INSTALL_PLR" == "true" ]]; then
   cp "$PLR_FILE" "$BUILD/files/plr.gppkg"
 fi
 
-#MADLIB_DOWNLOAD_URL="$(get_madlib_download_url "$GP_VERSION_DATA")"
+# Download MADlib
+if [[ "$INSTALL_MADLIB" == "true" ]]; then
+  DESCRIPTION_EXTRAS="$DESCRIPTION_EXTRAS + MADlib"
+  MADLIB_FILE="$CACHE/madlib-$GP_VERSION_ID.tar.gz"
+  download_pivnet_file "$(get_madlib_download_url "$GP_VERSION_DATA")" "$MADLIB_FILE"
+  cp "$MADLIB_FILE" "$BUILD/files/madlib.tar.gz"
+fi
+
 #GPTEXT_DOWNLOAD_URL="$(get_gptext_download_url "$GP_VERSION_DATA")"
 #GPCC_DOWNLOAD_URL="$(get_gpcc_download_url "$GP_VERSION_DATA")"
 

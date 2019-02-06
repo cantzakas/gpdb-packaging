@@ -28,3 +28,7 @@ if [[ "$INSTALLED_PLR" == "true" ]]; then
 
   psql -d gpadmin -c "SELECT test_r_version();" || die "Failed to execute PL/R function"
 fi
+
+if [[ "$INSTALLED_MADLIB" == "true" ]]; then
+  psql -d gpadmin -c "SELECT madlib.version();" || die "Failed to install MADlib"
+fi

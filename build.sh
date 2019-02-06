@@ -65,27 +65,30 @@ echo "Preparing files..."
 
 rm -rf "$BUILD/files" >/dev/null || true
 mkdir -p "$BUILD" "$CACHE" "$BUILD/files"
+DESCRIPTION_EXTRAS=""
+
+download() {
+  URL_FUNC="$1"
+  FILE_NAME="$2"
+  CACHE_NAME="${FILE_NAME%%.*}-$GP_VERSION_ID.${FILE_NAME#*.}"
+
+  download_pivnet_file "$("$URL_FUNC" "$GP_VERSION_DATA")" "$CACHE/$CACHE_NAME"
+  cp "$CACHE/$CACHE_NAME" "$BUILD/files/$FILE_NAME"
+}
 
 # Download Greenplum
-DESCRIPTION_EXTRAS=""
-GP_ZIP="$CACHE/greenplum-$GP_VERSION_ID.zip"
-download_pivnet_file "$(get_gpdb_download_url "$GP_VERSION_DATA")" "$GP_ZIP"
-cp "$GP_ZIP" "$BUILD/files/greenplum.zip"
+download get_gpdb_download_url "greenplum.zip"
 
 # Download PostGIS
 if [[ "$INSTALL_POSTGIS" == "true" ]]; then
   DESCRIPTION_EXTRAS="$DESCRIPTION_EXTRAS + PostGIS"
-  POSTGIS_FILE="$CACHE/postgis-$GP_VERSION_ID.gppkg"
-  download_pivnet_file "$(get_postgis_download_url "$GP_VERSION_DATA")" "$POSTGIS_FILE"
-  cp "$POSTGIS_FILE" "$BUILD/files/postgis.gppkg"
+  download get_postgis_download_url "postgis.gppkg"
 fi
 
 # Download PL/R
 if [[ "$INSTALL_PLR" == "true" ]]; then
   DESCRIPTION_EXTRAS="$DESCRIPTION_EXTRAS + PL/R"
-  PLR_FILE="$CACHE/plr-$GP_VERSION_ID.gppkg"
-  download_pivnet_file "$(get_plr_download_url "$GP_VERSION_DATA")" "$PLR_FILE"
-  cp "$PLR_FILE" "$BUILD/files/plr.gppkg"
+  download get_plr_download_url "plr.gppkg"
 fi
 
 # Download PL/Container
@@ -93,37 +96,25 @@ fi
 INSTALL_PLCONTAINER="false"
 
 if [[ "$INSTALL_PLCONTAINER_R" == "true" ]]; then
-  PLC_R_FILE="$CACHE/plc-r-$GP_VERSION_ID.tar.gz"
-  download_pivnet_file "$(get_plc_r_download_url "$GP_VERSION_DATA")" "$PLC_R_FILE"
-  cp "$PLC_R_FILE" "$BUILD/files/plc-r.tar.gz"
+  download get_plc_r_download_url "plc-r.tar.gz"
   INSTALL_PLCONTAINER="true"
 fi
 
 if [[ "$INSTALL_PLCONTAINER_PY" == "true" ]]; then
-  PLC_PY_FILE="$CACHE/plc-py-$GP_VERSION_ID.tar.gz"
-  download_pivnet_file "$(get_plc_py_download_url "$GP_VERSION_DATA")" "$PLC_PY_FILE"
-  cp "$PLC_PY_FILE" "$BUILD/files/plc-py.tar.gz"
+  download get_plc_py_download_url "plc-py.tar.gz"
   INSTALL_PLCONTAINER="true"
 fi
 
 if [[ "$INSTALL_PLCONTAINER" == "true" ]]; then
   DESCRIPTION_EXTRAS="$DESCRIPTION_EXTRAS + PL/Container"
-
-  PLCONTAINER_FILE="$CACHE/plcontainer-$GP_VERSION_ID.gppkg"
-  download_pivnet_file "$(get_plcontainer_download_url "$GP_VERSION_DATA")" "$PLCONTAINER_FILE"
-  cp "$PLCONTAINER_FILE" "$BUILD/files/plcontainer.gppkg"
+  download get_plcontainer_download_url "plcontainer.gppkg"
 fi
 
 # Download MADlib
 if [[ "$INSTALL_MADLIB" == "true" ]]; then
   DESCRIPTION_EXTRAS="$DESCRIPTION_EXTRAS + MADlib"
-  MADLIB_FILE="$CACHE/madlib-$GP_VERSION_ID.tar.gz"
-  download_pivnet_file "$(get_madlib_download_url "$GP_VERSION_DATA")" "$MADLIB_FILE"
-  cp "$MADLIB_FILE" "$BUILD/files/madlib.tar.gz"
+  download get_madlib_download_url "madlib.tar.gz"
 fi
-
-#GPTEXT_DOWNLOAD_URL="$(get_gptext_download_url "$GP_VERSION_DATA")"
-#GPCC_DOWNLOAD_URL="$(get_gpcc_download_url "$GP_VERSION_DATA")"
 
 # Build base OS
 if [[ " $* " == *' --force-build-os '* ]] || ! test -f "$BUILD/$OS-os/"*.ovf; then

@@ -3,9 +3,9 @@ set -ex
 
 DATA_DIR="/gpdata"
 TEMP_DIR="/gp_tmp"
-MASTER_HOSTNAME="gpdbox"
+MASTER_HOSTNAME="$HOSTNAME"
 
-GPADMIN_PASSWORD="changeme";
+GPADMIN_PASSWORD="changeme"
 
 install_packages() {
   if which apt; then

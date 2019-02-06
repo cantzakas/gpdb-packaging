@@ -47,6 +47,9 @@
     },
     {
       "type": "shell",
+      "environment_vars": [
+        "HOSTNAME={{user `hostname`}}"
+      ],
       "script": "packer/resources/greenplum.sh"
     },
     {

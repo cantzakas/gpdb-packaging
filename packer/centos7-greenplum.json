@@ -65,7 +65,7 @@
         "INSTALLED_POSTGIS={{user `install_postgis`}}",
         "INSTALLED_PLR={{user `install_plr`}}"
       ],
-      "execute_command": "sudo su -l gpadmin /bin/bash -c '{{ .Vars }} {{ .Path }}'",
+      "execute_command": "sudo -i -u gpadmin {{ .Vars }} '{{ .Path }}'",
       "script": "packer/resources/test.sh"
     },
     {

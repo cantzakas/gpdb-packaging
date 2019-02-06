@@ -13,6 +13,6 @@ set -ex
 gppkg -i ~/madlib.gppkg -a -v
 rm ~/madlib.gppkg
 
-$GPHOME/madlib/bin/madpack -s madlib -p greenplum -c gpadmin@localhost:5432/template1 install
+"$GPHOME/madlib/bin/madpack" -s madlib -p greenplum -c gpadmin@localhost:5432/template1 install
 
 EOF

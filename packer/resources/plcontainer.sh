@@ -17,7 +17,7 @@ sudo -i -u gpadmin <<'EOF'
 set -ex
 
 gppkg -i ~/plcontainer.gppkg
-source $GPHOME/greenplum_path.sh
+source "$GPHOME/greenplum_path.sh"
 gpstop -ra
 
 psql -d template1 -c 'CREATE EXTENSION plcontainer;'

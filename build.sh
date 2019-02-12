@@ -158,6 +158,12 @@ if [[ "$INSTALL_PLR" == "true" ]]; then
   download get_plr_download_url "plr.gppkg"
 fi
 
+# PL/Python
+if [[ "$INSTALL_PLPY" == "true" ]]; then
+  DESCRIPTION_EXTRAS+=" + PL/Python"
+  # Bundled by default; nothing to download
+fi
+
 # Download PL/Container
 
 INSTALL_PLCONTAINER="false"

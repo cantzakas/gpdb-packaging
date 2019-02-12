@@ -35,8 +35,6 @@ brew cask install vmware-fusion
    REFRESH_TOKEN='<token_here>' ./build.sh
    ```
 
-   **Note**: If you see an error about accepting a EULA, open the printed URL in a browser to accept it manually.
-
 4. If the script runs successfully, you will get a virtual image at `build/centos7-greenplum-<version>.ova`
 
 ### Options

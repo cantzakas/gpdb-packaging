@@ -28,7 +28,8 @@
         "--manifest",
         "--vsys", "0",
         "--description", "CentOS 7 running a single node Greenplum {{user `gp_version`}} database{{user `description_extras`}}",
-        "--version", "{{user `gp_version`}}"
+        "--version", "{{user `gp_version`}}",
+        "--eulafile", "{{user `eulafile`}}"
       ],
       "vboxmanage": [
         [ "modifyvm", "{{.Name}}", "--cpus", "2" ],

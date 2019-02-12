@@ -77,6 +77,8 @@ if test -f "$BASE_IMAGE_DIR/"*."$VM_EXT"; then
   BUILD_OS="$(request_boolean "Found existing base OS image for $OS on $VM_MANAGER - rebuild?" "n")"
 fi
 
+INCLUDE_EULA="$(request_boolean "Auto-accept and include Pivotal Network EULA in VM?" "y")"
+
 GP_VERSIONS="$(get_pivnet_product_releases "$PRODUCT_URL/releases" 5)"
 GP_VERSION="$(request_option "Which Greenplum?" "$GP_VERSIONS")"
 
@@ -96,6 +98,8 @@ INSTALL_MADLIB="$(request_boolean "Install MADlib?" "n")"
 #INSTALL_GPCC="$(request_boolean "Install Command Center?" "n")"
 
 
+echo
+echo
 
 echo "Fetching Greenplum version information..."
 
@@ -116,6 +120,28 @@ download() {
   download_pivnet_file "$("$URL_FUNC" "$GP_VERSION_DATA")" "$CACHE/$CACHE_NAME"
   cp "$CACHE/$CACHE_NAME" "$BUILD/files/$FILE_NAME"
 }
+
+# Download / Accept EULA
+
+EULAFILE="$CACHE/eula-$GP_VERSION_ID.html"
+get_pivnet_eula "$GP_VERSION_DATA" > "$EULAFILE"
+
+if [[ "$INCLUDE_EULA" == "true" ]]; then
+  echo "Auto-accepting Pivotal Network EULA (will be copied into VM)"
+else
+  echo
+  echo "VM will be created without a EULA, so you must accept it in advance:"
+  echo
+  print_html < "$EULAFILE"
+  echo
+  if [[ "$(request_boolean "Accept EULA?" "n")" != "true" ]]; then
+    echo "Rejected EULA; aborting" >&2
+    exit 1
+  fi
+  EULAFILE="/dev/null"
+fi
+
+accept_pivnet_eula "$GP_VERSION_DATA"
 
 # Download Greenplum
 download get_gpdb_download_url "greenplum.zip"
@@ -179,6 +205,7 @@ packer build \
   -var "base_os=$BASE_IMAGE" \
   -var "gp_version=$GP_VERSION" \
   -var "memory=$MEMORY_SIZE" \
+  -var "eulafile=$EULAFILE" \
   -var "description_extras=$DESCRIPTION_EXTRAS" \
   -var "install_postgis=$INSTALL_POSTGIS" \
   -var "install_plr=$INSTALL_PLR" \

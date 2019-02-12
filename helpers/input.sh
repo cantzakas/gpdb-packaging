@@ -49,3 +49,14 @@ request_option() {
   echo "Using $OPTION" >&2
   echo "$OPTION"
 }
+
+print_html() {
+  if which textutil >/dev/null; then
+    textutil \
+      -stdin -format html -inputencoding UTF-8 -noload \
+      -stdout -convert txt -encoding UTF-8 -nostore \
+      | fold -s
+  else
+    cat -
+  fi
+}

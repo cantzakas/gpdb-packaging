@@ -24,8 +24,11 @@ get_access_token() {
 }
 
 get_pivnet_data() {
-  local URL="$1"
-  curl -s -L "$URL"
+  curl -s -L "$@"
+}
+
+get_authenticated_pivnet_data() {
+  curl -H "Authorization: Bearer $(get_access_token)" -L "$@"
 }
 
 download_pivnet_file() {
@@ -33,7 +36,7 @@ download_pivnet_file() {
   local OUTPUT="$2"
   if ! test -f "$OUTPUT"; then
     echo "Downloading $URL as $OUTPUT..."
-    curl -H "Authorization: Bearer $(get_access_token)" -L "$URL" -o "$OUTPUT"
+    get_authenticated_pivnet_data "$URL" > "$OUTPUT"
   else
     echo "Using existing $OUTPUT"
   fi
@@ -66,6 +69,20 @@ get_pivnet_product_release_data() {
   local RELEASES_URL="$1"
   local VERSION_ID="$2"
   get_pivnet_data "$RELEASES_URL/$VERSION_ID"
+}
+
+get_pivnet_eula() {
+  local RELEASE_DATA="$1"
+  local URL="$(echo "$RELEASE_DATA" | jq -r '.eula._links.self.href')"
+  get_pivnet_data "$URL" \
+    | jq -r '.content' \
+    | sed 's/<pre/<pre style="white-space:pre-wrap"/g'
+}
+
+accept_pivnet_eula() {
+  local RELEASE_DATA="$1"
+  local URL="$(echo "$RELEASE_DATA" | jq -r '._links.self.href')/eula_acceptance"
+  get_authenticated_pivnet_data -s -X POST "$URL" >/dev/null
 }
 
 pivnet_data_file_group() {

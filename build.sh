@@ -94,7 +94,7 @@ INSTALL_PLPY="$(request_boolean "Install PL/Python?" "n")"
 INSTALL_PLCONTAINER_R="$(request_boolean "Install PL/Container R?" "n")"
 INSTALL_PLCONTAINER_PY="$(request_boolean "Install PL/Container Python?" "n")"
 INSTALL_MADLIB="$(request_boolean "Install MADlib?" "n")"
-#INSTALL_GPTEXT="$(request_boolean "Install GPText?" "n")"
+INSTALL_GPTEXT="$(request_boolean "Install GPText?" "n")"
 #INSTALL_GPCC="$(request_boolean "Install Command Center?" "n")"
 
 
@@ -143,6 +143,10 @@ fi
 
 accept_pivnet_eula "$GP_VERSION_DATA"
 
+# These options are automatically set to true if a tool is requested which needs them
+INSTALL_PLCONTAINER="false"
+INSTALL_JAVA="false"
+
 # Download Greenplum
 download get_gpdb_download_url "greenplum.zip"
 
@@ -164,20 +168,19 @@ if [[ "$INSTALL_PLPY" == "true" ]]; then
   # Bundled by default; nothing to download
 fi
 
-# Download PL/Container
-
-INSTALL_PLCONTAINER="false"
-
+# Download PL/Container R
 if [[ "$INSTALL_PLCONTAINER_R" == "true" ]]; then
   download get_plc_r_download_url "plc-r.tar.gz"
   INSTALL_PLCONTAINER="true"
 fi
 
+# Download PL/Container Python
 if [[ "$INSTALL_PLCONTAINER_PY" == "true" ]]; then
   download get_plc_py_download_url "plc-py.tar.gz"
   INSTALL_PLCONTAINER="true"
 fi
 
+# Download PL/Container
 if [[ "$INSTALL_PLCONTAINER" == "true" ]]; then
   DESCRIPTION_EXTRAS+=" + PL/Container"
   download get_plcontainer_download_url "plcontainer.gppkg"
@@ -187,6 +190,13 @@ fi
 if [[ "$INSTALL_MADLIB" == "true" ]]; then
   DESCRIPTION_EXTRAS+=" + MADlib"
   download get_madlib_download_url "madlib.tar.gz"
+fi
+
+# Download GPText
+if [[ "$INSTALL_GPTEXT" == "true" ]]; then
+  DESCRIPTION_EXTRAS+=" + GPText"
+  download get_gptext_download_url "gptext.tar.gz"
+  INSTALL_JAVA="true"
 fi
 
 # Build base OS
@@ -220,6 +230,7 @@ packer build \
   -var "install_plcontainer_r=$INSTALL_PLCONTAINER_R" \
   -var "install_plcontainer_py=$INSTALL_PLCONTAINER_PY" \
   -var "install_madlib=$INSTALL_MADLIB" \
+  -var "install_java=$INSTALL_JAVA" \
   -var "install_gptext=$INSTALL_GPTEXT" \
   -var "install_gpcc=$INSTALL_GPCC" \
   "packer/$OS-greenplum.json"

@@ -67,3 +67,10 @@ fi
 if [[ "$INSTALLED_MADLIB" == "true" ]]; then
   psql -d gpadmin -c "SELECT madlib.version();" || die "Failed to install MADlib"
 fi
+
+if [[ "$INSTALLED_GPTEXT" == "true" ]]; then
+  # Not allowed to install GPText to template1, so must be on gpadmin specifically
+  gptext-installsql gpadmin
+
+  psql -d gpadmin -c "SELECT gptext.version();" || die "Failed to install GPText"
+fi

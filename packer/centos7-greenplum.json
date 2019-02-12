@@ -83,6 +83,11 @@
     },
     {
       "type": "shell",
+      "execute_command": "if {{user `install_java`}}; then '{{ .Path }}'; fi",
+      "script": "packer/resources/java.sh"
+    },
+    {
+      "type": "shell",
       "execute_command": "if {{user `install_plr`}}; then '{{ .Path }}'; fi",
       "script": "packer/resources/plr.sh"
     },
@@ -113,6 +118,11 @@
     },
     {
       "type": "shell",
+      "execute_command": "if {{user `install_gptext`}}; then '{{ .Path }}'; fi",
+      "script": "packer/resources/gptext.sh"
+    },
+    {
+      "type": "shell",
       "environment_vars": [
         "INSTALLED_POSTGIS={{user `install_postgis`}}",
         "INSTALLED_PLR={{user `install_plr`}}",
@@ -120,7 +130,8 @@
         "INSTALLED_PLCONTAINER={{user `install_plcontainer`}}",
         "INSTALLED_PLCONTAINER_R={{user `install_plcontainer_r`}}",
         "INSTALLED_PLCONTAINER_PY={{user `install_plcontainer_py`}}",
-        "INSTALLED_MADLIB={{user `install_madlib`}}"
+        "INSTALLED_MADLIB={{user `install_madlib`}}",
+        "INSTALLED_GPTEXT={{user `install_gptext`}}"
       ],
       "execute_command": "sudo -i -u gpadmin {{ .Vars }} '{{ .Path }}'",
       "script": "packer/resources/test.sh"

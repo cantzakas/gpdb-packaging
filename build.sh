@@ -206,7 +206,7 @@ if [[ "$BUILD_OS" == "true" ]]; then
   packer build \
     -only="$VM_MANAGER" \
     -var "disk_size=${DISK_SIZE}" \
-    -var "build_dir=build/centos7-os" \
+    -var "build_dir=${BASE_IMAGE_DIR}" \
     "packer/$OS-os.json"
 else
   echo "Using existing $OS image"

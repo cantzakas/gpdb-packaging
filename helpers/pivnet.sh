@@ -54,7 +54,7 @@ get_pivnet_product_releases() {
   local RELEASES_URL="$1"
   local RECORD_COUNT="$2"
   get_pivnet_data "$RELEASES_URL" \
-    | jq -r '.releases | sort_by(.version | split(".") | map(tonumber))[].version' \
+    | jq -r '.releases | sort_by(.version | split("."))[].version' \
     | tail -r -n"$RECORD_COUNT"
 }
 

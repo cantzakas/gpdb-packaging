@@ -21,6 +21,13 @@ get_plr_download_url() {
     | pivnet_data_download_url
 }
 
+get_pljava_download_url() {
+  echo "$1" \
+    | pivnet_data_file_group "Greenplum Procedural Languages" \
+    | jq -r 'select((.name | contains("RHEL 7")) and (.name | contains("PL/Java")))' \
+    | pivnet_data_download_url
+}
+
 get_plcontainer_download_url() {
   echo "$1" \
     | pivnet_data_file_group "Greenplum Procedural Languages" \

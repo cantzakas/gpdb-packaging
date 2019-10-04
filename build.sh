@@ -89,6 +89,7 @@ fi
 MEMORY_SIZE="$(request_input "Enter RAM memory size (MB)" "8192")"
 
 INSTALL_POSTGIS="$(request_boolean "Install PostGIS?" "n")"
+INSTALL_PLPY="$(request_boolean "Install PL/Java?" "n")"
 INSTALL_PLR="$(request_boolean "Install PL/R?" "n")"
 INSTALL_PLPY="$(request_boolean "Install PL/Python?" "n")"
 INSTALL_PLCONTAINER_R="$(request_boolean "Install PL/Container R?" "n")"
@@ -154,6 +155,12 @@ download get_gpdb_download_url "greenplum.zip"
 if [[ "$INSTALL_POSTGIS" == "true" ]]; then
   DESCRIPTION_EXTRAS+=" + PostGIS"
   download get_postgis_download_url "postgis.gppkg"
+fi
+
+# Download PL/Java
+if [[ "$INSTALL_JAVA" == "true" ]]; then
+  DESCRIPTION_EXTRAS+=" + PL/Java"
+  download get_pljava_download_url "pljava.gppkg"
 fi
 
 # Download PL/R
@@ -224,6 +231,7 @@ packer build \
   -var "eulafile=$EULAFILE" \
   -var "description_extras=$DESCRIPTION_EXTRAS" \
   -var "install_postgis=$INSTALL_POSTGIS" \
+  -var "install_plr=$INSTALL_PLJAVA" \
   -var "install_plr=$INSTALL_PLR" \
   -var "install_plpy=$INSTALL_PLPY" \
   -var "install_plcontainer=$INSTALL_PLCONTAINER" \

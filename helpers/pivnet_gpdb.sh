@@ -3,7 +3,7 @@
 get_gpdb_download_url() {
   echo "$1" \
     | pivnet_data_file_group "Greenplum Database Server" \
-    | jq -r 'select((.name | contains("RHEL 7")) and (.name | contains("Binary")))' \
+    | jq -r 'select((.name | contains("RHEL 7")) and (.name | contains("Installer")) and (.name | contains("DCA") | not))' \
     | pivnet_data_download_url
 }
 

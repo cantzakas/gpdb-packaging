@@ -2,6 +2,12 @@
 
 Repeatable builds for Greenplum VMs
 
+## Limitations
+
+Greenplum database installation procedure has changed between versions 5.x and 6.x; previously was using the `gpseginstall` utility, or using system's package manager software, `yum install` for RHEL/CentOS systems, `apt install` for Ubuntu systems for version 6.x.
+
+This tool, as of *Q1 2020*, **does not** support version 6.x installations but we are actively working on updating it.
+
 ## Dependencies
 
 You will need

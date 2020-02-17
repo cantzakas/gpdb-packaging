@@ -149,7 +149,7 @@ INSTALL_PLCONTAINER="false"
 INSTALL_JAVA="false"
 
 # Download Greenplum
-download get_gpdb_download_url "greenplum.zip"
+download get_gpdb_download_url "greenplum.rpm"
 
 # Download PostGIS
 if [[ "$INSTALL_POSTGIS" == "true" ]]; then

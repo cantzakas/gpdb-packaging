@@ -21,15 +21,16 @@ install_packages unzip
 echo "Creating users"
 sudo adduser gpadmin -p "$(echo "$GPADMIN_PASSWORD" | openssl passwd -stdin)"
 
-echo "Unzipping Greenplum"
-mkdir -p ~/gp
-unzip ~/greenplum.zip -d ~/gp
-rm ~/greenplum.zip
+#echo "Unzipping Greenplum"
+#mkdir -p ~/gp
+#unzip ~/greenplum.zip -d ~/gp
+#rm ~/greenplum.zip
 
 echo "Installing Greenplum"
-BINFILE=( ~/gp/greenplum-db-*.bin )
-sed -i 's/more << EOF/cat << EOF/g' "$BINFILE"
-echo -e "yes\n\nyes\nyes\n" | sudo "$BINFILE"
+#BINFILE=( ~/gp/greenplum-db-*.bin )
+#sed -i 's/more << EOF/cat << EOF/g' "$BINFILE"
+#echo -e "yes\n\nyes\nyes\n" | sudo "$BINFILE"
+install_packages ./greenplum.rpm
 
 sudo mkdir -p "$TEMP_DIR" "$DATA_DIR/master" "$DATA_DIR/segments"
 
